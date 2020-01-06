@@ -1,10 +1,21 @@
-import board
-import neopixel
-import time
 from random import randrange
 
-num_pixels = 50
-pixels = neopixel.NeoPixel(board.D18, num_pixels, brightness=0.1, auto_write=False, pixel_order=neopixel.RGB)
+from utils import LightController
+
+
+class RainbowRandom(LightController):
+    time_to_sleep = 0.1
+
+    def __init__(self, number_of_pixels: int):
+        super().__init__(number_of_pixels)
+        self.pixel_colors = [randrange(0, 256) for _ in range(self.num_pixels)]
+
+    def pixels_for_frame(self):
+        return [wheel(x) for x in self.pixel_colors]
+
+    def update_frame(self):
+        index = randrange(0, self.num_pixels)
+        self.pixel_colors[index] = randrange(0, 256)
 
 
 def wheel(pos):
@@ -29,25 +40,25 @@ def wheel(pos):
     return r, g, b
 
 
-def rainbow_cycle(wait):
-    index = randrange(0, num_pixels)
-    pixel_color = (randrange(0, 255) * 256 // num_pixels)
-    pixels[index] = wheel(pixel_color & 255)
-    pixels.show()
-    time.sleep(wait)
-
-
-def main():
-    for i in range(num_pixels):
-        pixel_color = (randrange(0, 255) * 256 // num_pixels)
-        pixels[i] = wheel(pixel_color & 255)
-    pixels.show()
-    try:
-        while True:
-            rainbow_cycle(0.1)
-
-    except (KeyboardInterrupt, SystemExit):
-        pixels.deinit()
-
-
-main()
+# def rainbow_cycle(wait):
+#     index = randrange(0, num_pixels)
+#     pixel_color = (randrange(0, 255) * 256 // num_pixels)
+#     pixels[index] = wheel(pixel_color & 255)
+#     pixels.show()
+#     time.sleep(wait)
+#
+#
+# def main():
+#     for i in range(num_pixels):
+#         pixel_color = (randrange(0, 255) * 256 // num_pixels)
+#         pixels[i] = wheel(pixel_color & 255)
+#     pixels.show()
+#     try:
+#         while True:
+#             rainbow_cycle(0.1)
+#
+#     except (KeyboardInterrupt, SystemExit):
+#         pixels.deinit()
+#
+#
+# main()
