@@ -1,29 +1,21 @@
-import board
-import neopixel
-import time
+from utils import LightController, Colors, color_at_brightness
 
-red = (255, 0, 0)
-red1 = (200, 0, 0)
-red2 = (140, 0, 0)
-red3 = (50, 0, 0)
-black = (0, 0, 0)
 
-NUM_LEDS = 50
+class PewWithFade(LightController):
+    time_to_sleep = 0.05
 
-pixels = neopixel.NeoPixel(board.D18, NUM_LEDS, brightness=0.1, auto_write=False, pixel_order=neopixel.RGB)
+    def __init__(self, number_of_pixels: int):
+        super().__init__(number_of_pixels)
+        self.pixel_positions = [-3, -2, -1, 0]
+        self.pixel_brightnesses = [0.1, 0.7, 0.9, 1]
 
-lights = [-4, -3, -2, -1, 0]
-colors = [black, red3, red2, red1, red]
+    def pixels_for_frame(self):
+        pixel_colors = [Colors.black for _ in range(self.num_pixels)]
+        for index, x in enumerate(self.pixel_positions):
+            if 0 <= x < self.num_pixels:
+                pixel_colors[x] = color_at_brightness(Colors.green, self.pixel_brightnesses[index])
+        return pixel_colors
 
-try:
-    while True:
-        for i in range(len(lights)):
-            if lights[i] >= 0:
-                pixels[lights[i]] = colors[i]
-            lights[i] = (lights[i] + 1) % NUM_LEDS
-
-        pixels.show()
-        time.sleep(0.1)
-
-except (KeyboardInterrupt, SystemExit):
-    pixels.deinit()
+    def update_frame(self):
+        for i in range(len(self.pixel_positions)):
+            self.pixel_positions[i] = (self.pixel_positions[i] + 1) % (self.num_pixels + 15)
