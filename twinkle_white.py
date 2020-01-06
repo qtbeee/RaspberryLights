@@ -1,6 +1,6 @@
-from server import LightController, color_at_brightness, Colors
 from random import randrange
 from math import sin, radians
+from utils import color_at_brightness, Colors, LightController
 
 
 class TwinkleWhite(LightController):
