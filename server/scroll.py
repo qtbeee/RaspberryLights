@@ -1,16 +1,16 @@
-from utils import color_at_brightness, Colors, LightController
+from utils import color_at_brightness, Color, LightController
 
 
-class WhiteScroll(LightController):
+class Scroll(LightController):
     time_to_sleep = 0.1
     frames = 8
 
-    def __init__(self, number_of_pixels: int):
+    def __init__(self, number_of_pixels: int, color: Color):
         super().__init__(number_of_pixels)
-        self.pixel_colors = [Colors.black]
+        self.color = color
 
     def _color_for_pixel(self, index: int):
-        return color_at_brightness(Colors.white, ((index + self.current_frame) % (self.frames + 1)) / self.frames)
+        return color_at_brightness(self.color, ((index + self.current_frame) % (self.frames + 1)) / self.frames)
 
     def pixels_for_frame(self):
         return [self._color_for_pixel(i) for i in range(self.num_pixels)]

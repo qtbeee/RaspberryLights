@@ -8,7 +8,7 @@ from flask import Flask, jsonify, abort, request
 
 from critmas import Critmas
 from twinkle import Twinkle
-from white_scroll import WhiteScroll
+from scroll import Scroll
 from pew_with_fade import PewWithFade
 from rainbow_across import RainbowAcross
 from rainbow_in_place import RainbowInPlace
@@ -26,7 +26,7 @@ global pixels
 light_patterns = {
     "critmas": {"class": Critmas, "canChooseColor": False},
     "twinkle": {"class": Twinkle, "canChooseColor": True},
-    "whiteScroll": {"class": WhiteScroll, "canChooseColor": False},
+    "scroll": {"class": Scroll, "canChooseColor": True},
     "pewWithFade": {"class": PewWithFade, "canChooseColor": False},
     "rainbowAcross": {"class": RainbowAcross, "canChooseColor": False},
     "rainbowInPlace": {"class": RainbowInPlace, "canChooseColor": False},
