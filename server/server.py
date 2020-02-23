@@ -7,13 +7,13 @@ from multiprocessing.connection import Connection
 from flask import Flask, jsonify, abort, request
 
 from critmas import Critmas
-from twinkle_white import TwinkleWhite
+from twinkle import Twinkle
 from white_scroll import WhiteScroll
 from pew_with_fade import PewWithFade
 from rainbow_across import RainbowAcross
 from rainbow_in_place import RainbowInPlace
 from rainbow_random import RainbowRandom
-from utils import set_pixels, LightController
+from utils import set_pixels, LightController, Colors, colorFromHex
 
 # flask setup
 app = Flask(__name__)
@@ -25,7 +25,7 @@ global pixels
 # available light patterns
 light_patterns = {
     "critmas": {"class": Critmas, "canChooseColor": False},
-    "twinkle": {"class": TwinkleWhite, "canChooseColor": False},
+    "twinkle": {"class": Twinkle, "canChooseColor": True},
     "whiteScroll": {"class": WhiteScroll, "canChooseColor": False},
     "pewWithFade": {"class": PewWithFade, "canChooseColor": False},
     "rainbowAcross": {"class": RainbowAcross, "canChooseColor": False},
@@ -65,7 +65,6 @@ def getPatterns():
             } for key, value in light_patterns.items()
         ]
     }
-    # return jsonify({'patterns': [*light_patterns]})
 
 
 @app.route('/pattern', methods=['POST'])
@@ -76,7 +75,13 @@ def usePattern():
 
         pattern = light_patterns[patternName]
         if pattern is not None:
-            input_connection.send(pattern.get("class")(num_pixels))
+            if pattern.get("canChooseColor"):
+                color = Colors.white
+                if body.get("color") is not None:
+                    color = colorFromHex(body.get("color"))
+                input_connection.send(pattern.get("class")(num_pixels, color))
+            else:
+                input_connection.send(pattern.get("class")(num_pixels))
         else:
             return abort(422)
         return patternName

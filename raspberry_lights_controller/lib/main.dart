@@ -56,9 +56,21 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  String colorToHexString(Color color) {
+    var red = color.red.toRadixString(16);
+    var green = color.green.toRadixString(16);
+    var blue = color.blue.toRadixString(16);
+    return "#$red$green$blue";
+  }
+
   void setLightPattern() {
     client.post("pattern",
-        data: {"pattern": selectedPattern.pattern, "color": selectedColor},
+        data: {
+          "pattern": selectedPattern.pattern,
+          "color": selectedPattern.canChooseColor
+              ? colorToHexString(selectedColor)
+              : null
+        },
         options: Options(contentType: ContentType.json.toString()));
   }
 

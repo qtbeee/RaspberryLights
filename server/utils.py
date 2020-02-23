@@ -14,6 +14,12 @@ class Colors:
     green = (61, 156, 23)
 
 
+def colorFromHex(hex: str):
+    hex = hex.lstrip('#')
+    lv = len(hex)
+    return tuple(int(hex[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+
+
 class LightController:
     frames = 1
     time_to_sleep = 1
