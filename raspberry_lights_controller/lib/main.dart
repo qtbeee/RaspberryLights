@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:recase/recase.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import './pattern_info.dart';
 
 void main() => runApp(MyApp());
@@ -30,11 +31,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // final uriBase = "192.168.0.199:5000";
   var client = Dio();
   Future<List<PatternInfo>> availableLightsFuture;
   PatternInfo selectedPattern;
-  Color selectedColor;
+  Color selectedColor = Colors.white;
+  Color pickerColor = Colors.white;
 
   @override
   void initState() {
@@ -69,38 +70,111 @@ class _MyHomePageState extends State<MyHomePage> {
         Widget body;
 
         if (snapshot.hasData) {
-          body = Column(children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text(
-                "Select a light pattern:",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-              ),
+          body = Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    "Select a light pattern:",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                DropdownButton<PatternInfo>(
+                  value: selectedPattern,
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedPattern = newValue;
+                    });
+                  },
+                  isExpanded: true,
+                  underline: Container(
+                    height: 2,
+                    color: Colors.green,
+                  ),
+                  items: snapshot.data
+                      .map((info) => DropdownMenuItem(
+                          value: info,
+                          child: Text(
+                            info.pattern.titleCase,
+                          )))
+                      .toList(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Row(children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: RaisedButton.icon(
+                          onPressed: selectedPattern?.canChooseColor ?? false
+                              ? () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        contentPadding: const EdgeInsets.all(0),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        content: SingleChildScrollView(
+                                          child: ColorPicker(
+                                            pickerColor: pickerColor,
+                                            onColorChanged: (newColor) {
+                                              setState(() {
+                                                pickerColor = newColor;
+                                              });
+                                            },
+                                            paletteType: PaletteType.hsl,
+                                            enableAlpha: false,
+                                            displayThumbColor: true,
+                                            showLabel: true,
+                                          ),
+                                        ),
+                                        actions: [
+                                          FlatButton(
+                                            child: Text("OK"),
+                                            onPressed: () {
+                                              setState(() {
+                                                selectedColor = pickerColor;
+                                              });
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              : null,
+                          icon: Icon(Icons.palette),
+                          label: Text('Choose a color')),
+                    ),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: selectedColor,
+                          border: Border.all(color: Colors.black38, width: 3),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
+                        height: 37,
+                      ),
+                    ),
+                  ]),
+                ),
+                Spacer(),
+                Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: RaisedButton(
+                    child: Text("Set Pattern"),
+                    onPressed: setLightPattern,
+                  ),
+                ),
+              ],
             ),
-            Flexible(
-              child: ListView.builder(
-                  itemCount: snapshot.data.length,
-                  itemBuilder: (context, index) {
-                    var patternInfo = snapshot.data[index];
-                    return RadioListTile(
-                        title: Text(patternInfo.pattern.sentenceCase),
-                        subtitle: Text(
-                            "canChooseColor: ${patternInfo.canChooseColor}"),
-                        value: patternInfo,
-                        groupValue: selectedPattern,
-                        onChanged: (value) => setState(() {
-                              selectedPattern = value;
-                            }));
-                  }),
-            ),
-            Padding(
-              padding: EdgeInsets.all(8),
-              child: RaisedButton(
-                child: Text("Set Pattern"),
-                onPressed: setLightPattern,
-              ),
-            ),
-          ]);
+          );
         } else {
           body = LoadingScreen();
         }

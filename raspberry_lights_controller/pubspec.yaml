@@ -12,6 +12,8 @@ dependencies:
   dio: ^3.0.8
   recase: ^3.0.0
   json_annotation: ^3.0.0
+  flutter_colorpicker: ^0.3.2
+
 
 dev_dependencies:
   flutter_test:
