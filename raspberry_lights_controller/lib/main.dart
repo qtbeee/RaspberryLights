@@ -42,7 +42,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<List<PatternInfo>> availableLightsFuture;
   PatternInfo selectedPattern;
   Color selectedColor = Colors.white;
-  Color pickerColor = Colors.white;
 
   @override
   void initState() {
@@ -87,15 +86,9 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
-                    "Select a light pattern:",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-                  ),
-                ),
                 DropdownButton<PatternInfo>(
-                  value: selectedPattern,
+                  hint: Text("Select a pattern"),
+                  value: selectedPattern ?? snapshot.data.first,
                   onChanged: (newValue) {
                     setState(() {
                       selectedPattern = newValue;
@@ -139,10 +132,23 @@ class _MyHomePageState extends State<MyHomePage> {
         }
 
         return Scaffold(
-            appBar: AppBar(
-              title: Text(widget.title),
-            ),
-            body: body);
+          appBar: AppBar(
+            title: Text(widget.title),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.refresh),
+                onPressed: () {
+                  setState(() {
+                    availableLightsFuture = getAvailableLightPatterns();
+                    selectedPattern = null;
+                    selectedColor = Colors.white;
+                  });
+                },
+              )
+            ],
+          ),
+          body: body,
+        );
       },
     );
   }
