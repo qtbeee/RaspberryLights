@@ -121,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   padding: EdgeInsets.only(top: 8),
                   child: RaisedButton(
                     child: Text("Set Pattern"),
-                    onPressed: setLightPattern,
+                    onPressed: selectedPattern != null ? setLightPattern : null,
                   ),
                 ),
               ],
