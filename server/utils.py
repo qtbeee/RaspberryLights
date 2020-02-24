@@ -16,8 +16,8 @@ class Colors:
 
 def colorFromHex(hex: str):
     hex = hex.lstrip('#')
-    lv = len(hex)
-    return tuple(int(hex[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    length = len(hex)
+    return tuple(int(hex[i:i + 2], 16) for i in range(0, length, 2))
 
 
 class LightController:

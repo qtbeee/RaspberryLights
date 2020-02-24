@@ -3,10 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:recase/recase.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import './pattern_info.dart';
+import 'pattern_info.dart';
+import 'color_input.dart';
 
 void main() => runApp(MyApp());
+
+String colorToHexString(Color color) {
+  var red = color.red.toRadixString(16).padLeft(2, '0');
+  var green = color.green.toRadixString(16).padLeft(2, '0');
+  var blue = color.blue.toRadixString(16).padLeft(2, '0');
+  return "#$red$green$blue";
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -54,13 +61,6 @@ class _MyHomePageState extends State<MyHomePage> {
     } on DioError {
       return [];
     }
-  }
-
-  String colorToHexString(Color color) {
-    var red = color.red.toRadixString(16);
-    var green = color.green.toRadixString(16);
-    var blue = color.blue.toRadixString(16);
-    return "#$red$green$blue";
   }
 
   void setLightPattern() {
@@ -114,67 +114,14 @@ class _MyHomePageState extends State<MyHomePage> {
                           )))
                       .toList(),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Row(children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: RaisedButton.icon(
-                          onPressed: selectedPattern?.canChooseColor ?? false
-                              ? () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        contentPadding: const EdgeInsets.all(0),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        content: SingleChildScrollView(
-                                          child: ColorPicker(
-                                            pickerColor: pickerColor,
-                                            onColorChanged: (newColor) {
-                                              setState(() {
-                                                pickerColor = newColor;
-                                              });
-                                            },
-                                            paletteType: PaletteType.hsl,
-                                            enableAlpha: false,
-                                            displayThumbColor: true,
-                                            showLabel: true,
-                                          ),
-                                        ),
-                                        actions: [
-                                          FlatButton(
-                                            child: Text("OK"),
-                                            onPressed: () {
-                                              setState(() {
-                                                selectedColor = pickerColor;
-                                              });
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                }
-                              : null,
-                          icon: Icon(Icons.palette),
-                          label: Text('Choose a color')),
-                    ),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: selectedColor,
-                          border: Border.all(color: Colors.black38, width: 3),
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                        ),
-                        height: 37,
-                      ),
-                    ),
-                  ]),
+                ColorInput(
+                  color: selectedColor,
+                  enabled: selectedPattern?.canChooseColor ?? false,
+                  onChanged: (newColor) {
+                    setState(() {
+                      selectedColor = newColor;
+                    });
+                  },
                 ),
                 Spacer(),
                 Padding(

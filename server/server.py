@@ -4,7 +4,7 @@ import atexit
 import time
 from multiprocessing import Pipe, Process
 from multiprocessing.connection import Connection
-from flask import Flask, jsonify, abort, request
+from flask import Flask, abort, request
 
 from critmas import Critmas
 from twinkle import Twinkle
@@ -27,7 +27,7 @@ light_patterns = {
     "critmas": {"class": Critmas, "canChooseColor": False},
     "twinkle": {"class": Twinkle, "canChooseColor": True},
     "scroll": {"class": Scroll, "canChooseColor": True},
-    "pewWithFade": {"class": PewWithFade, "canChooseColor": False},
+    "pewWithFade": {"class": PewWithFade, "canChooseColor": True},
     "rainbowAcross": {"class": RainbowAcross, "canChooseColor": False},
     "rainbowInPlace": {"class": RainbowInPlace, "canChooseColor": False},
     "rainbowRandom": {"class": RainbowRandom, "canChooseColor": False},
