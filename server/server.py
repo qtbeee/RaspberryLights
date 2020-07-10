@@ -1,19 +1,21 @@
-import board
-import neopixel
 import atexit
 import time
 from multiprocessing import Pipe, Process
 from multiprocessing.connection import Connection
+
+import board
+import neopixel
 from flask import Flask, abort, request
 
 from critmas import Critmas
-from twinkle import Twinkle
-from scroll import Scroll
 from pew_with_fade import PewWithFade
 from rainbow_across import RainbowAcross
 from rainbow_in_place import RainbowInPlace
 from rainbow_random import RainbowRandom
-from utils import set_pixels, LightController, Colors, colorFromHex
+from scroll import Scroll
+from single_color_fixed import SingleColorFixed
+from twinkle import Twinkle
+from utils import set_pixels, Colors, color_from_hex
 
 # flask setup
 app = Flask(__name__)
@@ -31,13 +33,14 @@ light_patterns = {
     "rainbowAcross": {"class": RainbowAcross, "canChooseColor": False},
     "rainbowInPlace": {"class": RainbowInPlace, "canChooseColor": False},
     "rainbowRandom": {"class": RainbowRandom, "canChooseColor": False},
+    "singleColorFixed": {"class": SingleColorFixed, "canChooseColor": True},
 }
 
 
 # Function that will be running under its own process
 def light_loop(recv: Connection):
     print("starting that process...")
-    light_pattern = LightController(num_pixels)
+    light_pattern = SingleColorFixed(num_pixels, Colors.white)
     while True:
         if recv.poll():
             print("get new pattern")
@@ -78,7 +81,7 @@ def use_pattern():
             if pattern.get("canChooseColor"):
                 color = Colors.white
                 if body.get("color") is not None:
-                    color = colorFromHex(body.get("color"))
+                    color = color_from_hex(body.get("color"))
                 input_connection.send(pattern.get("class")(num_pixels, color))
             else:
                 input_connection.send(pattern.get("class")(num_pixels))

@@ -14,7 +14,7 @@ class Colors:
     green = (61, 156, 23)
 
 
-def colorFromHex(hex: str):
+def color_from_hex(hex: str):
     hex = hex.lstrip('#')
     length = len(hex)
     return tuple(int(hex[i:i + 2], 16) for i in range(0, length, 2))
