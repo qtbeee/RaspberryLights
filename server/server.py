@@ -35,28 +35,28 @@ light_patterns = {
 
 
 # Function that will be running under its own process
-def lightLoop(recv: Connection):
+def light_loop(recv: Connection):
     print("starting that process...")
-    lightPattern = LightController(num_pixels)
+    light_pattern = LightController(num_pixels)
     while True:
         if recv.poll():
             print("get new pattern")
-            lightPattern = recv.recv()
+            light_pattern = recv.recv()
 
-        pixel_values = lightPattern.pixels_for_frame()
+        pixel_values = light_pattern.pixels_for_frame()
         set_pixels(pixels, pixel_values)
-        lightPattern.update_frame()
-        time.sleep(lightPattern.time_to_sleep)
+        light_pattern.update_frame()
+        time.sleep(light_pattern.time_to_sleep)
 
 
 # for freeing the pin and turning off the lights
-def onExit():
+def on_exit():
     p.terminate()
     pixels.deinit()
 
 
 @app.route('/pattern', methods=['GET'])
-def getPatterns():
+def get_patterns():
     return {
         "patterns": [
             {
@@ -68,12 +68,12 @@ def getPatterns():
 
 
 @app.route('/pattern', methods=['POST'])
-def usePattern():
+def use_pattern():
     if request.is_json:
         body = request.get_json()
-        patternName = body.get("pattern")
+        pattern_name = body.get("pattern")
 
-        pattern = light_patterns[patternName]
+        pattern = light_patterns[pattern_name]
         if pattern is not None:
             if pattern.get("canChooseColor"):
                 color = Colors.white
@@ -84,7 +84,7 @@ def usePattern():
                 input_connection.send(pattern.get("class")(num_pixels))
         else:
             return abort(422)
-        return patternName
+        return pattern_name
     else:
         abort(400)
 
@@ -99,9 +99,9 @@ if __name__ != '__main__':
         auto_write=False,
         pixel_order=neopixel.RGB)
 
-    atexit.register(onExit)
+    atexit.register(on_exit)
 
     child_conn, input_connection = Pipe(False)
 
-    p = Process(target=lightLoop, args=(child_conn,))
+    p = Process(target=light_loop, args=(child_conn,))
     p.start()
