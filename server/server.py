@@ -13,7 +13,7 @@ from rainbow_across import RainbowAcross
 from rainbow_in_place import RainbowInPlace
 from rainbow_random import RainbowRandom
 from scroll import Scroll
-from single_color_fixed import SingleColorFixed
+from single_color_fixed import SolidColor
 from twinkle import Twinkle
 from utils import set_pixels, Colors, color_from_hex
 
@@ -33,14 +33,14 @@ light_patterns = {
     "rainbowAcross": {"class": RainbowAcross, "canChooseColor": False},
     "rainbowInPlace": {"class": RainbowInPlace, "canChooseColor": False},
     "rainbowRandom": {"class": RainbowRandom, "canChooseColor": False},
-    "singleColorFixed": {"class": SingleColorFixed, "canChooseColor": True},
+    "solidColor": {"class": SolidColor, "canChooseColor": True},
 }
 
 
 # Function that will be running under its own process
 def light_loop(recv: Connection):
     print("starting that process...")
-    light_pattern = SingleColorFixed(num_pixels, Colors.white)
+    light_pattern = SolidColor(num_pixels, Colors.white)
     while True:
         if recv.poll():
             print("get new pattern")

@@ -1,7 +1,7 @@
 from utils import Color, LightController
 
 
-class SingleColorFixed(LightController):
+class SolidColor(LightController):
 
     def __init__(self, number_of_pixels: int, color: Color):
         super().__init__(number_of_pixels)
