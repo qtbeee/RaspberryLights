@@ -92,7 +92,7 @@ def use_pattern():
         abort(400)
 
 
-if __name__ != '__main__':
+if __name__ == '__main__':
     print("__name__ is ", __name__)
     global pixels, input_connection
     pixels = neopixel.NeoPixel(
@@ -108,3 +108,5 @@ if __name__ != '__main__':
 
     p = Process(target=light_loop, args=(child_conn,))
     p.start()
+
+    app.run(host='0.0.0.0', port=5000)
