@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'pattern_info.dart';
 import 'color_input.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 String colorToHexString(Color color) {
   var red = color.red.toRadixString(16).padLeft(2, '0');
@@ -16,6 +16,8 @@ String colorToHexString(Color color) {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -23,13 +25,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: MyHomePage(title: 'Lights Controller'),
+      home: const MyHomePage(title: 'Lights Controller'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({Key key, this.title}) : super(key: key);
 
   final String title;
 
@@ -87,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButton<PatternInfo>(
-                  hint: Text("Select a pattern"),
+                  hint: const Text("Select a pattern"),
                   value: selectedPattern ?? snapshot.data.first,
                   onChanged: (newValue) {
                     setState(() {
@@ -116,11 +118,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                   },
                 ),
-                Spacer(),
+                const Spacer(),
                 Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: RaisedButton(
-                    child: Text("Set Pattern"),
+                  padding: const EdgeInsets.only(top: 8),
+                  child: ElevatedButton(
+                    child: const Text("Set Pattern"),
                     onPressed: selectedPattern != null ? setLightPattern : null,
                   ),
                 ),
@@ -128,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           );
         } else {
-          body = LoadingScreen();
+          body = const LoadingScreen();
         }
 
         return Scaffold(
@@ -136,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
             title: Text(widget.title),
             actions: [
               IconButton(
-                icon: Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh),
                 onPressed: () {
                   setState(() {
                     availableLightsFuture = getAvailableLightPatterns();
@@ -155,12 +157,15 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class LoadingScreen extends StatelessWidget {
+  const LoadingScreen({Key key}) : super(key: key);
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: const [
         LinearProgressIndicator(),
-        const Expanded(
+        Expanded(
           child: Center(child: Text('Fetching available light patterns...')),
         )
       ],

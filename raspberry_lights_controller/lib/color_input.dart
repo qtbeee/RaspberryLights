@@ -33,21 +33,21 @@ class _ColorInputState extends State<ColorInput> {
       child: Row(children: [
         Padding(
           padding: const EdgeInsets.only(right: 16),
-          child: RaisedButton.icon(
+          child: ElevatedButton.icon(
               onPressed: widget.enabled
                   ? () {
                       activateColorPicker(context);
                     }
                   : null,
-              icon: Icon(Icons.palette),
-              label: Text('Choose a color')),
+              icon: const Icon(Icons.palette),
+              label: const Text('Choose a color')),
         ),
         Expanded(
           child: Container(
             decoration: BoxDecoration(
               color: widget.color,
               border: Border.all(color: Colors.black38, width: 3),
-              borderRadius: BorderRadius.all(Radius.circular(4)),
+              borderRadius: const BorderRadius.all(Radius.circular(4)),
             ),
             height: 37,
           ),
@@ -80,8 +80,8 @@ class _ColorInputState extends State<ColorInput> {
             ),
           ),
           actions: [
-            FlatButton(
-              child: Text("OK"),
+            TextButton(
+              child: const Text("OK"),
               onPressed: () {
                 widget.onChanged(pickerColor);
                 Navigator.of(context).pop();

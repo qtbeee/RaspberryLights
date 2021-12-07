@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'pattern_info.g.dart';
 
-@JsonSerializable(nullable: false)
+@JsonSerializable()
 class PatternInfo {
   final String pattern;
   final bool canChooseColor;
