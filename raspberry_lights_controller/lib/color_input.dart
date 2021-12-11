@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ColorInput extends StatefulWidget {
   const ColorInput({
-    Key key,
-    @required this.color,
-    @required this.enabled,
-    @required this.onChanged,
-  }) : super(key: key);
+    this.color = Colors.white,
+    required this.enabled,
+    required this.onChanged,
+  });
 
   final Color color;
   final bool enabled;
@@ -18,13 +18,7 @@ class ColorInput extends StatefulWidget {
 }
 
 class _ColorInputState extends State<ColorInput> {
-  Color pickerColor;
-
-  @override
-  void initState() {
-    pickerColor = Colors.white;
-    super.initState();
-  }
+  var hexInput = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +30,7 @@ class _ColorInputState extends State<ColorInput> {
           child: ElevatedButton.icon(
               onPressed: widget.enabled
                   ? () {
-                      activateColorPicker(context);
+                      openColorPicker(context);
                     }
                   : null,
               icon: const Icon(Icons.palette),
@@ -56,40 +50,172 @@ class _ColorInputState extends State<ColorInput> {
     );
   }
 
-  void activateColorPicker(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          contentPadding: const EdgeInsets.all(0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
+  // open a new page method
+  void openColorPicker(BuildContext context) async {
+    var color = await Navigator.of(context).push<Color>(
+      MaterialPageRoute(
+        builder: (context) => ColorPickerPage(
+          color: widget.color,
+        ),
+      ),
+    );
+    if (color != null) {
+      widget.onChanged(color);
+    }
+  }
+}
+
+class ColorPickerPage extends StatefulWidget {
+  const ColorPickerPage({
+    required this.color,
+  });
+
+  final Color color;
+
+  @override
+  State<ColorPickerPage> createState() => _ColorPickerPageState();
+}
+
+class _ColorPickerPageState extends State<ColorPickerPage> {
+  late Color color;
+  List<String> history = [];
+
+  @override
+  void initState() {
+    color = widget.color;
+    fetchSavedColors();
+    super.initState();
+  }
+
+  Future<void> fetchSavedColors() async {
+    var prefs = await SharedPreferences.getInstance();
+    setState(() {
+      history = prefs.getStringList("savedColors") ?? [];
+    });
+  }
+
+  void saveColor(Color color) async {
+    final changedHistory = history.toSet();
+
+    if (changedHistory.add(colorToHex(color, enableAlpha: false))) {
+      var prefs = await SharedPreferences.getInstance();
+
+      final newHistory = history.toList();
+      await prefs.setStringList("savedColors", newHistory);
+      setState(() {
+        history = newHistory;
+      });
+    }
+  }
+
+  void removeSavedColor(String color) async {
+    var prefs = await SharedPreferences.getInstance();
+    history.remove(color);
+    await prefs.setStringList("savedColors", history);
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(Icons.close),
+        ),
+        title: const Text("Choose a Color"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pop(color);
+            },
+            icon: const Icon(Icons.check),
           ),
-          content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: pickerColor,
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            HueRingPicker(
+              pickerColor: color,
               onColorChanged: (newColor) {
                 setState(() {
-                  pickerColor = newColor;
+                  color = newColor;
                 });
               },
-              paletteType: PaletteType.hsl,
-              enableAlpha: false,
-              displayThumbColor: true,
-              showLabel: true,
             ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("OK"),
-              onPressed: () {
-                widget.onChanged(pickerColor);
-                Navigator.of(context).pop();
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Text(
+                    "Saved Colors:",
+                    textAlign: TextAlign.left,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    child: const Text("Save Current Color"),
+                    onPressed: () {
+                      setState(() {
+                        saveColor(color);
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: history.length,
+              itemBuilder: (context, index) {
+                final item = history[index];
+                final itemColor = colorFromHex(item)!;
+
+                return ListTile(
+                  key: Key(item),
+                  leading: Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: itemColor,
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(color: Colors.black38, width: 2),
+                    ),
+                  ),
+                  title: Text(item),
+                  onTap: () {
+                    setState(() {
+                      color = itemColor;
+                    });
+                  },
+                  onLongPress: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return ListTile(
+                          leading: const Icon(Icons.delete),
+                          title: const Text("Remove"),
+                          onTap: () {
+                            removeSavedColor(item);
+                            Navigator.of(context).pop();
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
               },
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:recase/recase.dart';
 import 'package:dio/dio.dart';
 import 'pattern_info.dart';
@@ -16,7 +17,7 @@ String colorToHexString(Color color) {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key key}) : super(key: key);
+  const MyApp();
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({required this.title});
 
   final String title;
 
@@ -41,8 +42,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var client = Dio();
-  Future<List<PatternInfo>> availableLightsFuture;
-  PatternInfo selectedPattern;
+  late Future<List<PatternInfo>> availableLightsFuture;
+  PatternInfo? selectedPattern;
   Color selectedColor = Colors.white;
 
   @override
@@ -65,11 +66,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void setLightPattern() {
+    if (selectedPattern == null) {
+      return;
+    }
+
     client.post("pattern",
         data: {
-          "pattern": selectedPattern.pattern,
-          "color": selectedPattern.canChooseColor
-              ? colorToHexString(selectedColor)
+          "pattern": selectedPattern!.pattern,
+          "color": selectedPattern!.canChooseColor
+              ? colorToHex(selectedColor, includeHashSign: true, enableAlpha: false)
               : null
         },
         options: Options(contentType: ContentType.json.toString()));
@@ -90,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 DropdownButton<PatternInfo>(
                   hint: const Text("Select a pattern"),
-                  value: selectedPattern ?? snapshot.data.first,
+                  value: selectedPattern,
                   onChanged: (newValue) {
                     setState(() {
                       selectedPattern = newValue;
@@ -101,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: 2,
                     color: Colors.green,
                   ),
-                  items: snapshot.data
+                  items: snapshot.data!
                       .map((info) => DropdownMenuItem(
                           value: info,
                           child: Text(
@@ -157,7 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class LoadingScreen extends StatelessWidget {
-  const LoadingScreen({Key key}) : super(key: key);
+  const LoadingScreen();
 
   @override
   Widget build(BuildContext context) {

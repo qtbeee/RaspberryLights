@@ -7,7 +7,7 @@ class PatternInfo {
   final String pattern;
   final bool canChooseColor;
 
-  PatternInfo({this.pattern, this.canChooseColor});
+  PatternInfo({ required this.pattern, required this.canChooseColor});
 
   factory PatternInfo.fromJson(Map<String, dynamic> json) =>
       _$PatternInfoFromJson(json);
