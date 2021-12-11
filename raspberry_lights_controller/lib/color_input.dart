@@ -100,7 +100,7 @@ class _ColorPickerPageState extends State<ColorPickerPage> {
     if (changedHistory.add(colorToHex(color, enableAlpha: false))) {
       var prefs = await SharedPreferences.getInstance();
 
-      final newHistory = history.toList();
+      final newHistory = changedHistory.toList();
       await prefs.setStringList("savedColors", newHistory);
       setState(() {
         history = newHistory;
