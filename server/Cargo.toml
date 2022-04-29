@@ -1,0 +1,11 @@
+[package]
+name = "raspberry_lights"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# rppal = "^0.13.1"
+ws2818-rgb-led-spi-driver = "2.0.0"
+ctrlc = "3.2.2"
