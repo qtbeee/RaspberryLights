@@ -4,10 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ColorInput extends StatefulWidget {
   const ColorInput({
+    Key? key,
     this.color = Colors.white,
     required this.enabled,
     required this.onChanged,
-  });
+  }): super(key: key);
 
   final Color color;
   final bool enabled;

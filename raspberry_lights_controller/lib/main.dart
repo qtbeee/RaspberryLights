@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:recase/recase.dart';
@@ -17,7 +18,7 @@ String colorToHexString(Color color) {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp();
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({required this.title});
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -45,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late Future<List<PatternInfo>> availableLightsFuture;
   PatternInfo? selectedPattern;
   Color selectedColor = Colors.white;
+  int animationSpeed = 1;
 
   @override
   void initState() {
@@ -60,7 +62,10 @@ class _MyHomePageState extends State<MyHomePage> {
       return List.from(response.data['patterns'])
           .map((v) => PatternInfo.fromJson(v))
           .toList();
-    } on DioError {
+    } on DioError catch (e) {
+      if (kDebugMode) {
+        print("error fetching patterns: $e");
+      }
       return [];
     }
   }
@@ -70,14 +75,19 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
+    final data = {
+      "pattern": selectedPattern!.pattern,
+      "colors": selectedPattern!.canChooseColor
+          ? [
+              colorToHex(selectedColor,
+                  includeHashSign: true, enableAlpha: false)
+            ]
+          : null,
+      "animationSpeed": selectedPattern!.animationSpeeds > 1 ? animationSpeed - 1 : null,
+    };
+
     client.post("pattern",
-        data: {
-          "pattern": selectedPattern!.pattern,
-          "color": selectedPattern!.canChooseColor
-              ? colorToHex(selectedColor, includeHashSign: true, enableAlpha: false)
-              : null
-        },
-        options: Options(contentType: ContentType.json.toString()));
+        data: data, options: Options(contentType: ContentType.json.toString()));
   }
 
   @override
@@ -114,15 +124,32 @@ class _MyHomePageState extends State<MyHomePage> {
                           )))
                       .toList(),
                 ),
-                ColorInput(
-                  color: selectedColor,
-                  enabled: selectedPattern?.canChooseColor ?? false,
-                  onChanged: (newColor) {
-                    setState(() {
-                      selectedColor = newColor;
-                    });
-                  },
-                ),
+                if (selectedPattern != null &&
+                    selectedPattern!.animationSpeeds > 1) ...[
+                  const Text('Speed:'),
+                  Slider(
+                    min: 1,
+                    max: selectedPattern!.animationSpeeds.toDouble(),
+                    label: '${animationSpeed}',
+                    value: animationSpeed.toDouble(),
+                    divisions: selectedPattern!.animationSpeeds - 1,
+                    onChanged: (value) {
+                      setState(() {
+                        animationSpeed = value.toInt();
+                      });
+                    },
+                  ),
+                ],
+                if (selectedPattern?.canChooseColor ?? false)
+                  ColorInput(
+                    color: selectedColor,
+                    enabled: selectedPattern?.canChooseColor ?? false,
+                    onChanged: (newColor) {
+                      setState(() {
+                        selectedColor = newColor;
+                      });
+                    },
+                  ),
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -162,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class LoadingScreen extends StatelessWidget {
-  const LoadingScreen();
+  const LoadingScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

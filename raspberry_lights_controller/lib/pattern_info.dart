@@ -6,8 +6,13 @@ part 'pattern_info.g.dart';
 class PatternInfo {
   final String pattern;
   final bool canChooseColor;
+  final int animationSpeeds;
 
-  PatternInfo({ required this.pattern, required this.canChooseColor});
+  PatternInfo({
+    required this.pattern,
+    required this.canChooseColor,
+    required this.animationSpeeds,
+  });
 
   factory PatternInfo.fromJson(Map<String, dynamic> json) =>
       _$PatternInfoFromJson(json);

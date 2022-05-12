@@ -1,13 +1,13 @@
-use std::{
-    str::FromStr,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    thread::sleep,
-    time::Duration,
-};
+mod light_pattern;
+mod model;
+mod pattern;
 
+use axum::{routing::get, Extension, Router};
+use light_pattern::{ColorlessPattern, LightPattern, RainbowInPlace};
+
+use std::{num::NonZeroUsize, time::Duration};
+use tokio::{sync::mpsc::error::TryRecvError, time::sleep};
+use tower_http::trace::TraceLayer;
 use ws2818_rgb_led_spi_driver::{
     adapter_gen::WS28xxAdapter,
     adapter_spi::WS28xxSpiAdapter,
@@ -15,135 +15,93 @@ use ws2818_rgb_led_spi_driver::{
     timings::encoding::{WS2812_LOGICAL_ONE_BYTES, WS2812_LOGICAL_ZERO_BYTES},
 };
 
-fn main() {
-    let finish = Arc::new(AtomicBool::new(false));
+use crate::pattern::{get_patterns, set_pattern};
 
-    let r = finish.clone();
+#[tokio::main]
+async fn main() {
+    // Setup:
+    // - Make a channel
+    // - Give the sending end to the post handler
+    // - Start the server in a background thread
+    // - Start the function for running the lights and give it the receiving end
+    let leds_in_use = NonZeroUsize::new(5).unwrap();
+    let total_leds: usize = 50;
+
+    let (send, rcv) = tokio::sync::mpsc::channel(1);
+
+    let app = Router::new()
+        .route("/pattern", get(get_patterns).post(set_pattern))
+        .layer(TraceLayer::new_for_http())
+        .layer(Extension(send))
+        .layer(Extension(leds_in_use));
+
+    println!("thread spawned for running lights");
+
+    // NOTE: to get around the spi handler not being `Send`, we're running the axum server
+    // in a separate thread instead of the led runner function!
+    let handler = tokio::spawn(
+        axum::Server::bind(&"0.0.0.0:5000".parse().unwrap()).serve(app.into_make_service()),
+    );
+
     ctrlc::set_handler(move || {
-        r.store(true, Ordering::SeqCst);
+        handler.abort();
     })
     .expect("Failed to set ctrl+c handler D:");
 
-    println!("Hello, world!");
+    run_lights(rcv, total_leds, leds_in_use).await;
+}
 
+async fn run_lights(
+    mut receiver: tokio::sync::mpsc::Receiver<Box<dyn LightPattern + Send>>,
+    total_leds: usize,
+    leds_in_use: NonZeroUsize,
+) {
+    // Set up spi pin
     let mut adapter = WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap();
-    let num_leds = 50;
-    let leds_in_use = 5;
 
-    let mut pattern = RainbowInPlace::new(leds_in_use);
+    let mut pattern: Box<dyn LightPattern> = Box::new(RainbowInPlace::new(leds_in_use, 0));
+
     loop {
-        if finish.load(Ordering::SeqCst) {
-            break;
-        }
-
-        {
-            let mut spi_encoded = vec![];
-            // set first `leds_in_use` leds to the current color
-            pattern.get_next_frame().iter().for_each(|led| {
-                spi_encoded.extend_from_slice(&encode_rgb(led.red, led.green, led.blue));
-            });
-            // set the remainder to blank so they don't get set later
-            for _ in leds_in_use..num_leds {
-                spi_encoded.extend_from_slice(&encode_rgb(0, 0, 0));
+        match receiver.try_recv() {
+            Ok(new_pattern) => {
+                // pattern = pattern_from_json(new_pattern);
+                pattern = new_pattern;
             }
-            adapter.write_encoded_rgb(&spi_encoded).unwrap();
+            // If the server closes the connection, we should stop too!
+            // TODO: clear lights before we're done
+            Err(TryRecvError::Disconnected) => {
+                println!("server has shutdown, clearing leds...");
+                adapter.clear(usize::from(leds_in_use));
+                return;
+            }
 
-            // update state of pattern
-            pattern.update();
-
-            // sleep so it's not instant
-            sleep(Duration::from_millis(10));
+            Err(_) => (),
         }
-    }
 
-    println!("done");
-    adapter.clear(num_leds as usize);
-}
+        // Advance the light strip state for the current pattern
+        let mut spi_encoded = vec![];
 
-struct Color {
-    red: u8,
-    green: u8,
-    blue: u8,
-}
+        // set the leds in use to the colors specified by the light pattern
+        pattern.get_frame().iter().for_each(|led| {
+            spi_encoded.extend_from_slice(&encode_rgb(led.red, led.green, led.blue));
+        });
 
-impl FromStr for Color {
-    type Err = std::num::ParseIntError;
-
-    fn from_str(hex_code: &str) -> Result<Self, Self::Err> {
-        // u8::from_str_radix(src: &str, radix: u32) converts a string
-        // slice in a given base to u8
-        let red: u8 = u8::from_str_radix(&hex_code[1..3], 16)?;
-        let green: u8 = u8::from_str_radix(&hex_code[3..5], 16)?;
-        let blue: u8 = u8::from_str_radix(&hex_code[5..7], 16)?;
-
-        Ok(Color { red, green, blue })
-    }
-}
-
-trait LightPattern {
-    fn get_next_frame(&self) -> Vec<Color>;
-    fn update(&mut self);
-}
-
-trait ColorlessPattern: LightPattern {
-    fn new(leds: u8) -> Self;
-}
-
-trait ColorPattern: LightPattern {
-    fn new(leds: u8, colors: &[Color]) -> Self;
-}
-
-struct RainbowInPlace {
-    pos: u8,
-    leds: u8,
-}
-
-impl LightPattern for RainbowInPlace {
-    fn get_next_frame(&self) -> Vec<Color> {
-        std::iter::from_fn(|| Some(color_wheel(self.pos)))
-            .take(self.leds as usize)
-            .collect()
-    }
-
-    fn update(&mut self) {
-        self.pos = self.pos.overflowing_add(1).0;
-    }
-}
-
-impl ColorlessPattern for RainbowInPlace {
-    fn new(leds: u8) -> Self {
-        Self { pos: 0, leds }
-    }
-}
-
-// Get a color value based on `pos`.
-// The colors are a transition r - g - b - back to r.
-fn color_wheel(pos: u8) -> Color {
-    if pos < 85 {
-        Color {
-            red: pos * 3,
-            green: 255 - pos * 3,
-            blue: 0,
+        // set the remainder to blank so they don't get set later
+        for _ in usize::from(leds_in_use)..total_leds {
+            spi_encoded.extend_from_slice(&encode_rgb(0, 0, 0));
         }
-    } else if pos < 170 {
-        let p = pos - 85;
-        Color {
-            red: 255 - p * 3,
-            green: 0,
-            blue: p * 3,
-        }
-    } else {
-        let p = pos - 170;
-        Color {
-            red: 0,
-            green: p * 3,
-            blue: 255 - p * 3,
-        }
+        adapter.write_encoded_rgb(&spi_encoded).unwrap();
+
+        // update state of pattern
+        pattern.update();
+
+        // sleep so it's not instant
+        sleep(Duration::from_millis(pattern.get_sleep_millis())).await;
     }
 }
 
 // This was copied and edited from the ws2818_rgb_led_spi_driver crate cause
-// the order of the things are _wrong_ for the WS2811 ;-;
+// the order of the rgb bytes are _wrong_ for the WS2811 ;-;
 const COLORS: usize = 3; // r, g, b
 pub fn encode_rgb(r: u8, g: u8, b: u8) -> [u8; SPI_BYTES_PER_RGB_PIXEL] {
     let mut spi_bytes: [u8; SPI_BYTES_PER_RGB_PIXEL] = [0; SPI_BYTES_PER_RGB_PIXEL];
