@@ -83,7 +83,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   includeHashSign: true, enableAlpha: false)
             ]
           : null,
-      "animationSpeed": selectedPattern!.animationSpeeds > 1 ? animationSpeed - 1 : null,
+      "animationSpeed":
+          selectedPattern!.animationSpeeds > 1 ? animationSpeed - 1 : null,
     };
 
     client.post("pattern",
@@ -126,21 +127,43 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 if (selectedPattern != null &&
                     selectedPattern!.animationSpeeds > 1) ...[
-                  const Text('Speed:'),
-                  Slider(
-                    min: 1,
-                    max: selectedPattern!.animationSpeeds.toDouble(),
-                    label: '${animationSpeed}',
-                    value: animationSpeed.toDouble(),
-                    divisions: selectedPattern!.animationSpeeds - 1,
-                    onChanged: (value) {
-                      setState(() {
-                        animationSpeed = value.toInt();
-                      });
-                    },
+                  Row(
+                    children: [
+                      const Text('Speed:',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Slider(
+                              min: 1,
+                              max: selectedPattern!.animationSpeeds.toDouble(),
+                              label: '$animationSpeed',
+                              value: animationSpeed.toDouble(),
+                              divisions: selectedPattern!.animationSpeeds - 1,
+                              onChanged: (value) {
+                                setState(() {
+                                  animationSpeed = value.toInt();
+                                });
+                              },
+                            ),
+                            Row(
+                              children: const [
+                                Text('Slower'),
+                                Spacer(),
+                                Text('Faster'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-                if (selectedPattern?.canChooseColor ?? false)
+                if (selectedPattern?.canChooseColor ?? false) ...[
+                  const Text('Colors:',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ColorInput(
                     color: selectedColor,
                     enabled: selectedPattern?.canChooseColor ?? false,
@@ -150,6 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       });
                     },
                   ),
+                ],
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -176,6 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     availableLightsFuture = getAvailableLightPatterns();
                     selectedPattern = null;
                     selectedColor = Colors.white;
+                    animationSpeed = 1;
                   });
                 },
               )
