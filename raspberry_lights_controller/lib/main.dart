@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:raspberry_lights_controller/providers/pattern.dart';
 import 'package:recase/recase.dart';
 import 'package:dio/dio.dart';
+import 'color_picker.dart';
 import 'pattern_info.dart';
 import 'color_input.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(const ProviderScope(child: MyApp()));
 
 String colorToHexString(Color color) {
   var red = color.red.toRadixString(16).padLeft(2, '0');
@@ -32,7 +35,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
@@ -41,12 +44,9 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends ConsumerState<MyHomePage> {
   var client = Dio();
   late Future<List<PatternInfo>> availableLightsFuture;
-  PatternInfo? selectedPattern;
-  Color selectedColor = Colors.white;
-  int animationSpeed = 1;
 
   @override
   void initState() {
@@ -71,20 +71,24 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void setLightPattern() {
+    final selectedPattern = ref.read(selectedPatternProvider);
+    final selectedColors = ref.read(colorsProvider);
+
     if (selectedPattern == null) {
       return;
     }
 
     final data = {
-      "pattern": selectedPattern!.pattern,
-      "colors": selectedPattern!.canChooseColor
-          ? [
-              colorToHex(selectedColor,
-                  includeHashSign: true, enableAlpha: false)
-            ]
+      "pattern": selectedPattern.pattern,
+      "colors": selectedPattern.canChooseColor
+          ? selectedColors
+              .map((c) =>
+                  colorToHex(c, includeHashSign: true, enableAlpha: false))
+              .toList()
           : null,
-      "animationSpeed":
-          selectedPattern!.animationSpeeds > 1 ? animationSpeed - 1 : null,
+      "animationSpeed": selectedPattern.animationSpeeds > 1
+          ? ref.read(animationSpeedProvider) - 1
+          : null,
     };
 
     client.post("pattern",
@@ -93,6 +97,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedPattern = ref.watch(selectedPatternProvider);
+    final animationSpeed = ref.watch(animationSpeedProvider);
+    final selectedColors = ref.watch(colorsProvider);
+
     return FutureBuilder<List<PatternInfo>>(
       future: availableLightsFuture,
       builder: (BuildContext context, snapshot) {
@@ -109,7 +117,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   value: selectedPattern,
                   onChanged: (newValue) {
                     setState(() {
-                      selectedPattern = newValue;
+                      ref
+                          .read(selectedPatternProvider.notifier)
+                          .update((state) => newValue);
                     });
                   },
                   isExpanded: true,
@@ -126,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       .toList(),
                 ),
                 if (selectedPattern != null &&
-                    selectedPattern!.animationSpeeds > 1) ...[
+                    selectedPattern.animationSpeeds > 1) ...[
                   Row(
                     children: [
                       const Text('Speed:',
@@ -137,14 +147,14 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             Slider(
                               min: 1,
-                              max: selectedPattern!.animationSpeeds.toDouble(),
+                              max: selectedPattern.animationSpeeds.toDouble(),
                               label: '$animationSpeed',
                               value: animationSpeed.toDouble(),
-                              divisions: selectedPattern!.animationSpeeds - 1,
+                              divisions: selectedPattern.animationSpeeds - 1,
                               onChanged: (value) {
-                                setState(() {
-                                  animationSpeed = value.toInt();
-                                });
+                                ref
+                                    .read(animationSpeedProvider.notifier)
+                                    .setSpeed(value.toInt());
                               },
                             ),
                             Row(
@@ -161,20 +171,49 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
                 if (selectedPattern?.canChooseColor ?? false) ...[
-                  const Text('Colors:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ColorInput(
-                    color: selectedColor,
-                    enabled: selectedPattern?.canChooseColor ?? false,
-                    onChanged: (newColor) {
-                      setState(() {
-                        selectedColor = newColor;
-                      });
-                    },
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      const Text(
+                        'Colors:',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      ElevatedButton(
+                        onPressed: () {
+                          openColorPicker(context, ref);
+                        },
+                        child: Row(
+                          children: const [
+                            Icon(Icons.palette),
+                            Icon(
+                              Icons.add,
+                              size: 14,
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-                const Spacer(),
+                  Expanded(
+                    child: ReorderableListView.builder(
+                      itemBuilder: (context, index) {
+                        return ColorInput(
+                          key: ValueKey('${selectedColors[index]} $index'),
+                          index: index,
+                        );
+                      },
+                      itemCount: selectedColors.length,
+                      onReorder: (oldIndex, newIndex) {
+                        ref
+                            .read(colorsProvider.notifier)
+                            .moveColor(oldIndex: oldIndex, newIndex: newIndex);
+                      },
+                    ),
+                  ),
+                ] else
+                  const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: ElevatedButton(
@@ -196,11 +235,13 @@ class _MyHomePageState extends State<MyHomePage> {
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: () {
+                  ref.read(animationSpeedProvider.notifier).reset();
+                  ref
+                      .read(selectedPatternProvider.notifier)
+                      .update((state) => null);
+                  ref.read(colorsProvider.notifier).reset();
                   setState(() {
                     availableLightsFuture = getAvailableLightPatterns();
-                    selectedPattern = null;
-                    selectedColor = Colors.white;
-                    animationSpeed = 1;
                   });
                 },
               )
