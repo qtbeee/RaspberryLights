@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/pattern_info.dart';
+import 'package:raspberry_lights_controller/util.dart';
 
 final selectedPatternProvider = StateProvider<PatternInfo?>((ref) {
   return null;
@@ -61,3 +62,10 @@ class ColorsNotifier extends StateNotifier<List<Color>> {
     state = updated;
   }
 }
+
+final patternInfoProvider = FutureProvider((ref) async {
+  var response = await client.get("pattern");
+  return List.from(response.data['patterns'])
+      .map((v) => PatternInfo.fromJson(v))
+      .toList();
+});

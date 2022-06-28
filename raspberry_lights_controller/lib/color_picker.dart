@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/providers/pattern.dart';
+import 'package:raspberry_lights_controller/widgets/color_tile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 
 void openColorPicker(
   BuildContext context,
@@ -57,7 +58,7 @@ class _ColorPickerPageState extends State<ColorPickerPage> {
   void saveColor(Color color) async {
     final changedHistory = history.toSet();
 
-    if (changedHistory.add(colorToHex(color, enableAlpha: false))) {
+    if (changedHistory.add(color.hex)) {
       var prefs = await SharedPreferences.getInstance();
 
       final newHistory = changedHistory.toList();
@@ -101,14 +102,67 @@ class _ColorPickerPageState extends State<ColorPickerPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HueRingPicker(
-              pickerColor: color,
+            ColorPicker(
+              color: color,
               onColorChanged: (newColor) {
                 setState(() {
+                  debugPrint(newColor.toString());
                   color = newColor;
                 });
               },
+              borderRadius: 4,
+              pickersEnabled: const {
+                ColorPickerType.primary: false,
+                ColorPickerType.accent: false,
+                ColorPickerType.custom: true,
+                ColorPickerType.wheel: true,
+              },
+              customColorSwatchesAndNames: {
+                const ColorSwatch(0xFF991818, { 500: Color(0xFF991818)}): 'Red',
+                const ColorSwatch(0xFF994e18, { 500: Color(0xFF994e18)}): 'Orange',
+                const ColorSwatch(0xFF999726, { 500: Color(0xFF999726)}): 'Yellow',
+                const ColorSwatch(0xFF18993f, { 500: Color(0xFF18993f)}): 'Green',
+                const ColorSwatch(0xFF189999, { 500: Color(0xFF189999)}): 'Seafoam',
+                const ColorSwatch(0xFF183f99, { 500: Color(0xFF183f99)}): 'Cyan',
+                const ColorSwatch(0xFF2c2699, { 500: Color(0xFF2c2699)}): 'Blue',
+                const ColorSwatch(0xFF672699, { 500: Color(0xFF672699)}): 'Indigo',
+                const ColorSwatch(0xFF952699, { 500: Color(0xFF952699)}): 'Purple',
+                const ColorSwatch(0xFF992656, { 500: Color(0xFF992656)}): 'Pink',
+              },
+              subheading: const Text('Shades'),
+              enableShadesSelection: true,
+              hasBorder: true,
+              showColorCode: true,
+              colorCodeHasColor: true,
+              copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                copyFormat: ColorPickerCopyFormat.numHexRRGGBB,
+              ),
+              showColorName: true,
+              wheelDiameter: 250,
+              wheelSquarePadding: 16,
+              wheelWidth: 16,
             ),
+            // SlidePicker(
+            //   showIndicator: false,
+            //   pickerColor: color,
+            //   enableAlpha: false,
+            //   colorModel: ColorModel.hsv,
+            //   sliderSize: Size(MediaQuery.of(context).size.width - 32, 40),
+            //   displayThumbColor: true,
+            //   onColorChanged: (newColor) {
+            //     setState(() {
+            //       color = newColor;
+            //     });
+            //   },
+            // ),
+            // HueRingPicker(
+            //   pickerColor: color,
+            //   onColorChanged: (newColor) {
+            //     setState(() {
+            //       color = newColor;
+            //     });
+            //   },
+            // ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -136,39 +190,18 @@ class _ColorPickerPageState extends State<ColorPickerPage> {
               itemCount: history.length,
               itemBuilder: (context, index) {
                 final item = history[index];
-                final itemColor = colorFromHex(item)!;
+                final itemColor = item.toColor;
 
-                return ListTile(
+                return ColorTile(
+                  color: itemColor,
                   key: Key(item),
-                  leading: Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      color: itemColor,
-                      borderRadius: BorderRadius.circular(40),
-                      border: Border.all(color: Colors.black38, width: 2),
-                    ),
-                  ),
-                  title: Text(item),
                   onTap: () {
                     setState(() {
                       color = itemColor;
                     });
                   },
-                  onLongPress: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (context) {
-                        return ListTile(
-                          leading: const Icon(Icons.delete),
-                          title: const Text("Remove"),
-                          onTap: () {
-                            removeSavedColor(item);
-                            Navigator.of(context).pop();
-                          },
-                        );
-                      },
-                    );
+                  onDelete: () {
+                    removeSavedColor(item);
                   },
                 );
               },
