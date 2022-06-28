@@ -24,7 +24,7 @@ async fn main() {
     // - Give the sending end to the post handler
     // - Start the server in a background thread
     // - Start the function for running the lights and give it the receiving end
-    let leds_in_use = NonZeroUsize::new(5).unwrap();
+    let leds_in_use = NonZeroUsize::new(50).unwrap();
     let total_leds: usize = 50;
 
     let (send, rcv) = tokio::sync::mpsc::channel(1);
@@ -34,8 +34,6 @@ async fn main() {
         .layer(TraceLayer::new_for_http())
         .layer(Extension(send))
         .layer(Extension(leds_in_use));
-
-    println!("thread spawned for running lights");
 
     // NOTE: to get around the spi handler not being `Send`, we're running the axum server
     // in a separate thread instead of the led runner function!
@@ -70,7 +68,6 @@ async fn run_lights(
             // If the server closes the connection, we should stop too!
             // TODO: clear lights before we're done
             Err(TryRecvError::Disconnected) => {
-                println!("server has shutdown, clearing leds...");
                 adapter.clear(usize::from(leds_in_use));
                 return;
             }

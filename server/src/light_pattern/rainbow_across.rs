@@ -11,7 +11,7 @@ pub struct RainbowAcross {
 }
 
 impl RainbowAcross {
-    const SPEEDS: [usize; 1] = [100];
+    const SPEEDS: [usize; 4] = [100, 75, 50, 30];
 }
 
 impl LightPattern for RainbowAcross {

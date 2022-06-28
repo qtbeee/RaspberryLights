@@ -14,7 +14,7 @@ pub struct Twinkle {
 
 impl Twinkle {
     const FRAMES: u16 = 360;
-    const SPEEDS: [usize; 2] = [50, 30];
+    const SPEEDS: [usize; 3] = [30, 25, 20];
 }
 
 impl LightPattern for Twinkle {

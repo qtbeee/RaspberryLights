@@ -41,7 +41,7 @@ pub struct Critmas {
 }
 
 impl Critmas {
-    pub const SPEEDS: [usize; 1] = [30];
+    pub const SPEEDS: [usize; 3] = [35, 30, 20];
 
     fn reset_colors(&mut self) {
         self.current_colors

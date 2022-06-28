@@ -12,7 +12,7 @@ pub struct Scroll {
 }
 
 impl Scroll {
-    const SPEEDS: [usize; 1] = [250];
+    const SPEEDS: [usize; 2] = [250, 230];
 }
 
 impl LightPattern for Scroll {

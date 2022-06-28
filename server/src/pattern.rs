@@ -77,7 +77,5 @@ pub async fn set_pattern(
         )),
     };
 
-    println!("{}", pattern.get_sleep_millis());
-
     let _ = sender.send(pattern).await;
 }

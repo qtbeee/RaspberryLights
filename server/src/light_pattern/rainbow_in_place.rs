@@ -11,7 +11,7 @@ pub struct RainbowInPlace {
 }
 
 impl RainbowInPlace {
-    const SPEEDS: [usize; 1] = [30];
+    const SPEEDS: [usize; 4] = [100, 75, 50, 30];
 }
 
 impl LightPattern for RainbowInPlace {
