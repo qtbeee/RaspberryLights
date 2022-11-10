@@ -55,7 +55,16 @@ async fn run_lights(
     leds_in_use: NonZeroUsize,
 ) {
     // Set up spi pin
-    let mut adapter = WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap();
+    let mut attempts = 0;
+    let mut adapter = loop {
+        attempts += 1;
+       if let Ok(adapter) = WS28xxSpiAdapter::new("/dev/spidev0.0") {
+         break adapter;
+       } else {
+         println!("attempt {}: spi device not found. sleeping for 5 seconds", attempts);
+         sleep(Duration::from_secs(5)).await;
+       }
+    };
 
     let mut pattern: Box<dyn LightPattern> = Box::new(RainbowInPlace::new(leds_in_use, 0));
 

@@ -25,7 +25,7 @@ class Home extends ConsumerWidget {
                   .read(selectedPatternProvider.notifier)
                   .update((state) => null);
               ref.read(colorsProvider.notifier).reset();
-              ref.refresh(patternInfoProvider);
+              ref.invalidate(patternInfoProvider);
             },
           )
         ],

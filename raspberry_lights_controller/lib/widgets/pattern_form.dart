@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:raspberry_lights_controller/color_picker.dart';
+import 'package:raspberry_lights_controller/screens/color_picker.dart';
 import 'package:raspberry_lights_controller/widgets/color_tile.dart';
-import 'package:raspberry_lights_controller/pattern_info.dart';
+import 'package:raspberry_lights_controller/models/pattern_info.dart';
 import 'package:raspberry_lights_controller/providers/pattern.dart';
 import 'package:raspberry_lights_controller/util.dart';
 import 'package:recase/recase.dart';
@@ -142,9 +142,9 @@ class PatternForm extends ConsumerWidget {
           padding:
               const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 20),
           child: ElevatedButton(
-            child: const Text("Set Pattern"),
             onPressed:
                 selectedPattern != null ? () => setLightPattern(ref) : null,
+            child: const Text("Set Pattern"),
           ),
         ),
       ],

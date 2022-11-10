@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:raspberry_lights_controller/home.dart';
+import 'package:raspberry_lights_controller/screens/home.dart';
 
 void main() => runApp(const ProviderScope(child: MyApp()));
 
