@@ -15,8 +15,8 @@ dependencies:
   shared_preferences: ^2.0.15
   flutter_riverpod: ^2.1.1
   # TODO: make a custom colopicker, neither of these are quite right for this
-  flutter_colorpicker: ^1.0.2
-  flex_color_picker: 2.5.0
+  flutter_colorpicker: ^1.0.3
+  flex_color_picker: ^2.6.1
 
 dev_dependencies:
   flutter_test:
