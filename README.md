@@ -1,5 +1,3 @@
-# raspberry_lights_controller
-
 A Flutter app and tiny Rust API for controlling an led light strip on a Raspberry Pi.
 
 ## Developing
