@@ -36,10 +36,11 @@ impl Color {
 
     /// brightness between 0 and 1
     pub fn at_brightness(&self, brightness: f32) -> Color {
+        let brightness = brightness.clamp(0.0, 1.0);
         Color {
-            red: ((self.red as f32) * brightness.min(1.0)) as u8,
-            green: ((self.green as f32) * brightness.min(1.0)) as u8,
-            blue: ((self.blue as f32) * brightness.min(1.0)) as u8,
+            red: ((self.red as f32) * brightness) as u8,
+            green: ((self.green as f32) * brightness) as u8,
+            blue: ((self.blue as f32) * brightness) as u8,
         }
     }
 }

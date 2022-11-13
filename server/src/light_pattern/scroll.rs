@@ -44,11 +44,11 @@ impl LightPattern for Scroll {
 }
 
 impl ColorPattern for Scroll {
-    fn new(leds: NonZeroUsize, speed: usize, colors: &[Color]) -> Self {
+    fn new(leds: NonZeroUsize, speed: usize, brightness: f32, colors: &[Color]) -> Self {
         Self {
             leds,
             pos: 0,
-            color: colors[0],
+            color: colors[0].at_brightness(brightness),
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
         }
     }

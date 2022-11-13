@@ -24,16 +24,35 @@ class AnimationSpeedNotifier extends StateNotifier<int> {
   }
 }
 
+final brightnessProvider =
+    StateNotifierProvider<BrightnessNotifier, double>((ref) {
+  return BrightnessNotifier();
+});
+
+class BrightnessNotifier extends StateNotifier<double> {
+  BrightnessNotifier() : super(1);
+
+  void setBrightness(double brightness) {
+    state = brightness.clamp(0.1, 1).toDouble();
+  }
+
+  void reset() {
+    state = 1;
+  }
+}
+
 final colorsProvider =
     StateNotifierProvider<ColorsNotifier, List<Color>>((ref) {
   return ColorsNotifier();
 });
 
 class ColorsNotifier extends StateNotifier<List<Color>> {
-  ColorsNotifier() : super([Colors.white]);
+  ColorsNotifier() : super([defaultColor]);
+
+  static const defaultColor = Color(0xFF942cff);
 
   void reset() {
-    state = [Colors.white];
+    state = [defaultColor];
   }
 
   void setColor({required Color color, required int index}) {

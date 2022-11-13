@@ -20,6 +20,7 @@ class PatternForm extends ConsumerWidget {
     final selectedPattern = ref.watch(selectedPatternProvider);
     final animationSpeed = ref.watch(animationSpeedProvider);
     final selectedColors = ref.watch(colorsProvider);
+    final brightness = ref.watch(brightnessProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -76,6 +77,38 @@ class PatternForm extends ConsumerWidget {
                     Text('Slower'),
                     Spacer(),
                     Text('Faster'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+        if (selectedPattern != null) ...[
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text('Brightness:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                Slider(
+                  min: 0.1,
+                  max: 1,
+                  label: '${(brightness * 100).toInt()}%',
+                  value: brightness,
+                  divisions: 9,
+                  onChanged: (value) {
+                    ref.read(brightnessProvider.notifier).setBrightness(value);
+                  },
+                ),
+                Row(
+                  children: const [
+                    Text('10%'),
+                    Spacer(),
+                    Text('100%'),
                   ],
                 ),
               ],

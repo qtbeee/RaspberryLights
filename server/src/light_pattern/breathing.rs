@@ -54,12 +54,12 @@ impl LightPattern for Breathing {
 }
 
 impl ColorPattern for Breathing {
-    fn new(leds: NonZeroUsize, speed: usize, colors: &[Color]) -> Self {
+    fn new(leds: NonZeroUsize, speed: usize, brightness: f32, colors: &[Color]) -> Self {
         Self {
             led_count: leds,
             pos: 0,
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
-            colors: colors.to_vec(),
+            colors: colors.iter().map(|c| c.at_brightness(brightness)).collect(),
             current_color: if colors.len() == 1 {
                 0
             } else {

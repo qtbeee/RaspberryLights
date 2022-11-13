@@ -38,6 +38,7 @@ pub struct Critmas {
     pos: u16,
     current_colors: Vec<u8>,
     sleep_millis: u64,
+    brightness: f32,
 }
 
 impl Critmas {
@@ -56,7 +57,9 @@ impl LightPattern for Critmas {
             .iter()
             .map(|c| {
                 let x = (self.pos as f32).to_radians();
-                CRITMAS_COLORS[*c as usize].at_brightness(x.sin())
+                CRITMAS_COLORS[*c as usize]
+                    .at_brightness(x.sin())
+                    .at_brightness(self.brightness)
             })
             .collect()
     }
@@ -75,7 +78,7 @@ impl LightPattern for Critmas {
 }
 
 impl ColorlessPattern for Critmas {
-    fn new(leds: NonZeroUsize, speed: usize) -> Self {
+    fn new(leds: NonZeroUsize, speed: usize, brightness: f32) -> Self {
         let range = Uniform::new(0, CRITMAS_COLORS.len() as u8);
 
         Self {
@@ -85,6 +88,7 @@ impl ColorlessPattern for Critmas {
                 .sample_iter(range)
                 .take(usize::from(leds))
                 .collect(),
+            brightness,
         }
     }
 }

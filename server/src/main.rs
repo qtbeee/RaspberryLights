@@ -66,7 +66,7 @@ async fn run_lights(
        }
     };
 
-    let mut pattern: Box<dyn LightPattern> = Box::new(RainbowInPlace::new(leds_in_use, 0));
+    let mut pattern: Box<dyn LightPattern> = Box::new(RainbowInPlace::new(leds_in_use, 0, 1.0));
 
     loop {
         match receiver.try_recv() {

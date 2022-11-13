@@ -43,14 +43,14 @@ impl LightPattern for Twinkle {
 }
 
 impl ColorPattern for Twinkle {
-    fn new(leds: NonZeroUsize, speed: usize, colors: &[Color]) -> Self {
+    fn new(leds: NonZeroUsize, speed: usize, brightness: f32, colors: &[Color]) -> Self {
         Self {
             brightnesses: (0..usize::from(leds))
                 .map(|_| thread_rng().gen_range(0..Self::FRAMES))
                 .collect(),
             colors: colors
                 .iter()
-                .cloned()
+                .map(|c| c.at_brightness(brightness))
                 .cycle()
                 .take(usize::from(leds))
                 .collect(),

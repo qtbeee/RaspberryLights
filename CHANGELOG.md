@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Dedicated brightness slider in the app.
+- Server uses brightness setting to adjust rgb values, including for previously only full-brightness rainbow patterns.
+
 ## 0.3.0 - 2022-11-10
 
 ### Added

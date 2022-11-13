@@ -27,11 +27,11 @@ pub trait LightPattern {
 }
 
 pub trait ColorlessPattern: LightPattern + Information {
-    fn new(leds: NonZeroUsize, speed: usize) -> Self;
+    fn new(leds: NonZeroUsize, speed: usize, brightness: f32) -> Self;
 }
 
 pub trait ColorPattern: LightPattern + Information {
-    fn new(leds: NonZeroUsize, speed: usize, colors: &[Color]) -> Self;
+    fn new(leds: NonZeroUsize, speed: usize, brightness: f32, colors: &[Color]) -> Self;
 }
 
 pub trait Information {

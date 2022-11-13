@@ -35,10 +35,10 @@ impl ColorPattern for SolidColor {
     /// If more than one color is specified, the pattern
     /// will spread the colors across the leds like you would
     /// expect from a set of christmas lights.
-    fn new(leds: NonZeroUsize, speed: usize, colors: &[Color]) -> Self {
+    fn new(leds: NonZeroUsize, speed: usize, brightness: f32, colors: &[Color]) -> Self {
         Self {
             leds,
-            colors: colors.to_vec(),
+            colors: colors.iter().map(|c| c.at_brightness(brightness)).collect(),
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
         }
     }

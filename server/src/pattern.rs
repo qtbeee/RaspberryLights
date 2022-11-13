@@ -23,6 +23,7 @@ pub struct PatternRequest {
     pub pattern: PatternName,
     pub colors: Option<Vec<String>>,
     pub animation_speed: Option<usize>,
+    pub brightness: Option<f32>,
 }
 
 pub async fn get_patterns() -> Json<Patterns> {
@@ -50,29 +51,42 @@ pub async fn set_pattern(
             .collect::<Vec<_>>()
     });
     let animation_speed = request.animation_speed.unwrap_or(0);
+    let brightness = request.brightness.map(|b| b.clamp(0.1, 1.0)).unwrap_or(1.0);
 
     let pattern: Box<dyn LightPattern + Send> = match request.pattern {
         PatternName::Breathing => Box::new(Breathing::new(
             *leds_in_use,
             animation_speed,
+            brightness,
             &colors.expect("breathing pattern needs at least one color!"),
         )),
-        PatternName::Critmas => Box::new(Critmas::new(*leds_in_use, animation_speed)),
-        PatternName::RainbowAcross => Box::new(RainbowAcross::new(*leds_in_use, animation_speed)),
-        PatternName::RainbowInPlace => Box::new(RainbowInPlace::new(*leds_in_use, animation_speed)),
+        PatternName::Critmas => Box::new(Critmas::new(*leds_in_use, animation_speed, brightness)),
+        PatternName::RainbowAcross => Box::new(RainbowAcross::new(
+            *leds_in_use,
+            animation_speed,
+            brightness,
+        )),
+        PatternName::RainbowInPlace => Box::new(RainbowInPlace::new(
+            *leds_in_use,
+            animation_speed,
+            brightness,
+        )),
         PatternName::Scroll => Box::new(Scroll::new(
             *leds_in_use,
             animation_speed,
+            brightness,
             &colors.expect("scroll pattern needs at least one color!"),
         )),
         PatternName::SolidColor => Box::new(SolidColor::new(
             *leds_in_use,
             animation_speed,
+            brightness,
             &colors.expect("solid color pattern needs at least one color!"),
         )),
         PatternName::Twinkle => Box::new(Twinkle::new(
             *leds_in_use,
             animation_speed,
+            brightness,
             &colors.expect("twinkle pattern needs at least one color!"),
         )),
     };
