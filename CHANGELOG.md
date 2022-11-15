@@ -10,7 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Dedicated brightness slider in the app.
-- Server uses brightness setting to adjust rgb values, including for previously only full-brightness rainbow patterns.
+- Server uses brightness setting to adjust rgb values, including for previously only "full-brightness" rainbow patterns.
+
+### Changed
+
+- Now using bespoke UI for color selection instead of existing color picker libraries.
+- Use dedicated provider for saved colors feature.
+
+### Removed
+
+- Color picker libraries.
 
 ## 0.3.0 - 2022-11-10
 

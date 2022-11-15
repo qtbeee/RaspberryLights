@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:raspberry_lights_controller/models/color.dart';
 
 class ColorTile extends ConsumerWidget {
   const ColorTile({
@@ -25,11 +25,7 @@ class ColorTile extends ConsumerWidget {
               SizedBox(
                 width: 76,
                 child: Text(
-                  colorToHex(
-                    color,
-                    includeHashSign: true,
-                    enableAlpha: false,
-                  ),
+                  color.toHexString(),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
