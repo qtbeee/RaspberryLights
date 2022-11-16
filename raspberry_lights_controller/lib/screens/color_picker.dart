@@ -4,7 +4,7 @@ import 'package:raspberry_lights_controller/providers/pattern.dart';
 import 'package:raspberry_lights_controller/providers/saved_color.dart';
 import 'package:raspberry_lights_controller/widgets/hsv_color_slider.dart';
 import 'package:raspberry_lights_controller/widgets/color_tile.dart';
-import 'package:raspberry_lights_controller/models/color.dart';
+import 'package:raspberry_lights_controller/utils/color.dart';
 
 void openColorPicker(
   BuildContext context,

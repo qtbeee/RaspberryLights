@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:raspberry_lights_controller/models/color.dart';
+import 'package:raspberry_lights_controller/utils/color.dart';
 
 class ColorTile extends ConsumerWidget {
   const ColorTile({

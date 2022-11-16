@@ -4,7 +4,7 @@ import 'package:raspberry_lights_controller/screens/color_picker.dart';
 import 'package:raspberry_lights_controller/widgets/color_tile.dart';
 import 'package:raspberry_lights_controller/models/pattern_info.dart';
 import 'package:raspberry_lights_controller/providers/pattern.dart';
-import 'package:raspberry_lights_controller/util.dart';
+import 'package:raspberry_lights_controller/service/pattern.dart';
 import 'package:recase/recase.dart';
 
 class PatternForm extends ConsumerWidget {

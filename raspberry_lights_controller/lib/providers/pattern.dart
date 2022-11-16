@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/models/pattern_info.dart';
-import 'package:raspberry_lights_controller/util.dart';
+import 'package:raspberry_lights_controller/service/pattern.dart';
 
 final selectedPatternProvider = StateProvider<PatternInfo?>((ref) {
   return null;

@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:raspberry_lights_controller/models/color.dart';
+import 'package:raspberry_lights_controller/utils/color.dart';
 
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>(
     (_) async => await SharedPreferences.getInstance());

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/providers/pattern.dart';
-import 'package:raspberry_lights_controller/models/color.dart';
+import 'package:raspberry_lights_controller/utils/color.dart';
 
 final client = Dio()..options.baseUrl = "http://192.168.0.199:5000/";
 
