@@ -25,10 +25,12 @@ impl Breathing {
         // We want to avoid the same color in a row, but also don't wanna loop too long
         // if the rng gives the same number back-to-back. Solution: if the same color is
         // is chosen in a row, just choose the "next" color in the list instead.
-        let next_color = thread_rng().gen_range(0..self.colors.len());
+        let mut next_color = thread_rng().gen_range(0..self.colors.len());
         if self.current_color == next_color {
-            self.current_color = (self.current_color + 1) % self.colors.len();
+            next_color = (next_color + 1) % self.colors.len();
         }
+
+        self.current_color = next_color;
     }
 }
 
