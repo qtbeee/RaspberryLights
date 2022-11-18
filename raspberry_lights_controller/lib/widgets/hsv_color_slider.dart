@@ -123,6 +123,13 @@ class _GradientSlider extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
               gradient: gradient,
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black38,
+                  offset: Offset(1, 1),
+                  blurRadius: 1,
+                ),
+              ],
             ),
           ),
         ),

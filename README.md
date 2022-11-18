@@ -1,4 +1,4 @@
-A Flutter app and tiny Rust API for controlling an led light strip on a Raspberry Pi.
+A Flutter app and tiny Rust API for controlling a WS2811 led light strip on a Raspberry Pi.
 
 ## Developing
 There's 2 parts to this project - a flutter app, and a rust server.

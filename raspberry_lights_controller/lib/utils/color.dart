@@ -22,6 +22,6 @@ extension LedColor on Color {
     final green = _componentToHex(this.green);
     final blue = _componentToHex(this.blue);
 
-    return "#$red$green$blue";
+    return "#$red$green$blue".toUpperCase();
   }
 }

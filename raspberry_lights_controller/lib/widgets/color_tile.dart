@@ -16,51 +16,47 @@ class ColorTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Column(
-      children: [
-        ListTile(
-          contentPadding: const EdgeInsets.only(left: 8),
-          title: Row(
-            children: [
-              SizedBox(
-                width: 76,
-                child: Text(
-                  color.toHexString(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 8),
+      title: Row(
+        children: [
+          SizedBox(
+            width: 76,
+            child: Text(
+              color.toHexString(),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black38,
-                        offset: Offset(3, 3),
-                        blurRadius: 1,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (onDelete != null)
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  color: Colors.red,
-                  onPressed: onDelete,
-                )
-              else
-                const SizedBox(width: 16),
-            ],
+            ),
           ),
-          onTap: onTap,
-        ),
-      ],
+          const SizedBox(width: 5),
+          Expanded(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black38,
+                    offset: Offset(3, 3),
+                    blurRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (onDelete != null)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              color: Colors.red,
+              onPressed: onDelete,
+            )
+          else
+            const SizedBox(width: 16),
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }

@@ -14,10 +14,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      darkTheme: ThemeData(
-          colorScheme: const ColorScheme.dark(
-        primary: Color.fromARGB(255, 40, 100, 45),
-      )),
+      darkTheme: ThemeData(colorScheme: const ColorScheme.dark()),
       home: const Home(title: 'Lights Controller'),
     );
   }

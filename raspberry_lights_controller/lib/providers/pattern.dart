@@ -62,6 +62,10 @@ class ColorsNotifier extends StateNotifier<List<Color>> {
     state = newColors;
   }
 
+  void setColors(List<Color> colors) {
+    state = [...colors];
+  }
+
   void addColor({required Color color}) {
     state = [...state, color];
   }

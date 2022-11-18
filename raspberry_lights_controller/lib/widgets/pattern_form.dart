@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/screens/color_picker.dart';
+import 'package:raspberry_lights_controller/screens/palette_picker.dart';
 import 'package:raspberry_lights_controller/widgets/color_tile.dart';
 import 'package:raspberry_lights_controller/models/pattern_info.dart';
 import 'package:raspberry_lights_controller/providers/pattern.dart';
@@ -126,6 +127,12 @@ class PatternForm extends ConsumerWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
+                ElevatedButton(
+                    onPressed: () {
+                      openPalettePicker(context);
+                    },
+                    child: const Text('Set from Palette')),
+                const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () {
                     openColorPicker(context, ref);

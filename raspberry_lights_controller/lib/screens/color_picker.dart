@@ -5,6 +5,7 @@ import 'package:raspberry_lights_controller/providers/saved_color.dart';
 import 'package:raspberry_lights_controller/widgets/hsv_color_slider.dart';
 import 'package:raspberry_lights_controller/widgets/color_tile.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
+import 'package:raspberry_lights_controller/widgets/palette_list.dart';
 
 void openColorPicker(
   BuildContext context,
@@ -39,9 +40,11 @@ class ColorPickerPage extends StatefulWidget {
   State<ColorPickerPage> createState() => _ColorPickerPageState();
 }
 
-class _ColorPickerPageState extends State<ColorPickerPage> {
+class _ColorPickerPageState extends State<ColorPickerPage>
+    with TickerProviderStateMixin {
   late HSVColor color = HSVColor.fromColor(widget.color);
   Color get rgbColor => color.toColor();
+  late final TabController _controller = TabController(length: 2, vsync: this);
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +57,10 @@ class _ColorPickerPageState extends State<ColorPickerPage> {
           icon: const Icon(Icons.close),
         ),
         title: const Text("Choose a Color"),
+        bottom: TabBar(
+          tabs: const [Tab(text: "Custom"), Tab(text: "From Palette")],
+          controller: _controller,
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -63,45 +70,84 @@ class _ColorPickerPageState extends State<ColorPickerPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: SizedBox(
-                height: 80,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: rgbColor,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: Colors.white24,
-                      width: 2,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints.expand(height: 80),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: rgbColor,
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black38,
+                          offset: Offset(3, 3),
+                          blurRadius: 1,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
+                Text(
+                  rgbColor.toHexString().toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: ThemeData.estimateBrightnessForColor(rgbColor) ==
+                            Brightness.light
+                        ? Colors.black
+                        : Colors.white,
+                  ),
+                ),
+              ],
             ),
-            HSVColorSlider(
-              color: color,
-              onColorChanged: (newColor) {
-                setState(() {
-                  color = newColor;
-                });
-              },
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _controller,
+              children: [
+                Column(
+                  children: [
+                    HSVColorSlider(
+                      color: color,
+                      onColorChanged: (newColor) {
+                        setState(() {
+                          color = newColor;
+                        });
+                      },
+                    ),
+                    Expanded(
+                      child: _SavedColorList(
+                        color: rgbColor,
+                        onTapColor: (newColor) {
+                          setState(() {
+                            color = HSVColor.fromColor(newColor);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SingleChildScrollView(
+                  child: PaletteList(
+                    onColorSelected: (newColor) {
+                      setState(() {
+                        color = HSVColor.fromColor(newColor);
+                      });
+                    },
+                  ),
+                ),
+              ],
             ),
-            _SavedColorList(
-              color: rgbColor,
-              onTapColor: (newColor) {
-                setState(() {
-                  color = HSVColor.fromColor(newColor);
-                });
-              },
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -124,13 +170,13 @@ class _SavedColorList extends ConsumerWidget {
           child: Row(
             children: [
               const Text(
-                "Saved Colors:",
+                "Favorite Colors:",
                 textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 18),
               ),
               const Spacer(),
               TextButton(
-                child: const Text("Save Current Color"),
+                child: const Text("Add to Favorites"),
                 onPressed: () {
                   ref.read(savedColorsProvider.notifier).saveColor(color);
                 },
@@ -138,22 +184,23 @@ class _SavedColorList extends ConsumerWidget {
             ],
           ),
         ),
-        ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: savedColors.length,
-          itemBuilder: (context, index) {
-            final item = savedColors[index];
+        Expanded(
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: savedColors.length,
+            itemBuilder: (context, index) {
+              final item = savedColors[index];
 
-            return ColorTile(
-              color: item,
-              key: Key(item.toHexString()),
-              onTap: () => onTapColor(item),
-              onDelete: () {
-                ref.read(savedColorsProvider.notifier).removeSavedColor(item);
-              },
-            );
-          },
+              return ColorTile(
+                color: item,
+                key: Key(item.toHexString()),
+                onTap: () => onTapColor(item),
+                onDelete: () {
+                  ref.read(savedColorsProvider.notifier).removeSavedColor(item);
+                },
+              );
+            },
+          ),
         ),
       ],
     );

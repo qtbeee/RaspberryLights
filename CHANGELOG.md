@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Dedicated brightness slider in the app.
 - Server uses brightness setting to adjust rgb values, including for previously only "full-brightness" rainbow patterns.
+- List of color palettes, whose colors can be picked from individually, or set wholesale.
 
 ### Changed
 
 - Now using bespoke UI for color selection instead of existing color picker libraries.
 - Use dedicated provider for saved colors feature.
+- Word choice updates for clarity, such as "Add to Favorites" instead of "Save Current Color".
+- Hex color display are now in uppercase.
 
 ### Removed
 
