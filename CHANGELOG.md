@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Word choice updates for clarity, such as "Add to Favorites" instead of "Save Current Color".
 - Hex color display are now in uppercase.
 
+### Fixed
+
+- Breathing pattern now actually prevents runs of the same color if there's more than one color set.
+- Scroll pattern now actually uses all colors provided to it.
+
 ### Removed
 
 - Color picker libraries.
