@@ -7,12 +7,12 @@ use super::{Color, ColorPattern, Information, LightPattern};
 pub struct Scroll {
     pos: u8,
     leds: NonZeroUsize,
-    color: Color,
+    colors: Vec<Color>,
     sleep_millis: u64,
 }
 
 impl Scroll {
-    const SPEEDS: [usize; 2] = [250, 230];
+    const SPEEDS: [usize; 3] = [250, 230, 100];
 }
 
 impl LightPattern for Scroll {
@@ -21,7 +21,13 @@ impl LightPattern for Scroll {
         for n in 0..usize::from(self.leds) {
             let n = n % usize::from(u8::MAX);
             if (n as u8).overflowing_add(self.pos).0 % 3 == 0 {
-                result.push(self.color);
+                let index = if self.colors.len() > 1 {
+                    n.overflowing_add(usize::from(self.pos)).0 / 3 % self.colors.len()
+                } else {
+                    0
+                };
+
+                result.push(self.colors[index]);
             } else {
                 result.push(Color {
                     red: 0,
@@ -48,7 +54,7 @@ impl ColorPattern for Scroll {
         Self {
             leds,
             pos: 0,
-            color: colors[0].at_brightness(brightness),
+            colors: colors.iter().map(|c| c.at_brightness(brightness)).collect(),
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
         }
     }
