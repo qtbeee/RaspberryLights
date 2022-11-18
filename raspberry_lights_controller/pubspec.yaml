@@ -1,7 +1,7 @@
 name: raspberry_lights_controller
 description: An app for controlling the light pattern run by a Raspberry Pi.
 
-version: 0.3.0
+version: 0.4.0
 
 environment:
   sdk: ">=2.18.0 <3.0.0"
