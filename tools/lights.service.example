@@ -1,0 +1,13 @@
+[Unit]
+Description=Service for controlling lights connected to a Raspberry Pi
+After=network.target sysinit.target
+
+[Service]
+Type=simple
+Restart=always
+StartLimitIntervalSec=10
+#ExecStart=/path/to/executable/
+ExecStop=
+
+[Install]
+WantedBy=multi-user.target
