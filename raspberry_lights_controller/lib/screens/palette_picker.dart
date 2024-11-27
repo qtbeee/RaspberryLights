@@ -23,7 +23,7 @@ class PalettePicker extends ConsumerWidget {
       body: SingleChildScrollView(
         child: PaletteList(
           onPaletteSelected: (newColors) {
-            ref.read(colorsProvider.notifier).setColors(newColors);
+            ref.read(patternColorsProvider.notifier).setColors(newColors);
             Navigator.of(context).pop();
           },
         ),

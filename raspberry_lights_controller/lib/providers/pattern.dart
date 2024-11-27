@@ -1,62 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/models/pattern_info.dart';
-import 'package:raspberry_lights_controller/service/pattern.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final selectedPatternProvider = StateProvider<PatternInfo?>((ref) {
-  return null;
-});
+part 'pattern.g.dart';
 
-final animationSpeedProvider =
-    StateNotifierProvider<AnimationSpeedNotifier, int>((ref) {
-  return AnimationSpeedNotifier();
-});
+@riverpod
+class SelectedPattern extends _$SelectedPattern {
+  static const defaultPattern = null;
 
-class AnimationSpeedNotifier extends StateNotifier<int> {
-  AnimationSpeedNotifier() : super(1);
+  @override
+  PatternInfo? build() => defaultPattern;
 
-  void setSpeed(int speed) {
-    state = speed;
-  }
-
-  void reset() {
-    state = 1;
-  }
+  void setPattern(PatternInfo? pattern) => state = pattern;
+  void reset() => setPattern(defaultPattern);
 }
 
-final brightnessProvider =
-    StateNotifierProvider<BrightnessNotifier, double>((ref) {
-  return BrightnessNotifier();
-});
+@riverpod
+class AnimationSpeed extends _$AnimationSpeed {
+  static const defaultSpeed = 1;
 
-class BrightnessNotifier extends StateNotifier<double> {
-  BrightnessNotifier() : super(1);
+  @override
+  int build() => defaultSpeed;
 
-  void setBrightness(double brightness) {
-    state = brightness.clamp(0.1, 1).toDouble();
-  }
-
-  void reset() {
-    state = 1;
-  }
+  void setSpeed(int speed) => state = speed;
+  void reset() => setSpeed(defaultSpeed);
 }
 
-final colorsProvider =
-    StateNotifierProvider<ColorsNotifier, List<Color>>((ref) {
-  return ColorsNotifier();
-});
+@riverpod
+class PatternBrightness extends _$PatternBrightness {
+  static const defaultBrightness = 1.0;
 
-class ColorsNotifier extends StateNotifier<List<Color>> {
-  ColorsNotifier() : super([defaultColor]);
+  @override
+  double build() => defaultBrightness;
 
-  static const defaultColor = Color(0xFF942cff);
+  void setBrightness(double brightness) =>
+      state = brightness.clamp(0.1, 1).toDouble();
 
-  void reset() {
-    state = [defaultColor];
-  }
+  void reset() => setBrightness(defaultBrightness);
+}
+
+@riverpod
+class PatternColors extends _$PatternColors {
+  static const defaultColors = [Color(0xFF942cff)];
+
+  @override
+  List<Color> build() => defaultColors;
 
   void setColor({required Color color, required int index}) {
-    final newColors = [...state];
+    final newColors = [...super.state];
     newColors[index] = color;
 
     state = newColors;
@@ -84,11 +75,6 @@ class ColorsNotifier extends StateNotifier<List<Color>> {
 
     state = updated;
   }
-}
 
-final patternInfoProvider = FutureProvider((ref) async {
-  var response = await client.get("pattern");
-  return List.from(response.data['patterns'])
-      .map((v) => PatternInfo.fromJson(v))
-      .toList();
-});
+  void reset() => setColors(defaultColors);
+}

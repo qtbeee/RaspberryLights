@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class Loading extends StatelessWidget {
-  const Loading({Key? key}) : super(key: key);
+  const Loading({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
+      children: [
         LinearProgressIndicator(),
         Expanded(
           child: Center(child: Text('Fetching available light patterns...')),

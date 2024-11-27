@@ -15,24 +15,28 @@ void openColorPicker(
   var color = await Navigator.of(context).push<Color>(
     MaterialPageRoute(
       builder: (context) => ColorPickerPage(
-        color: index != null ? ref.read(colorsProvider)[index] : Colors.white,
+        color: index != null
+            ? ref.read(patternColorsProvider)[index]
+            : Colors.white,
       ),
     ),
   );
   if (color != null) {
     if (index == null) {
-      ref.read(colorsProvider.notifier).addColor(color: color);
+      ref.read(patternColorsProvider.notifier).addColor(color: color);
     } else {
-      ref.read(colorsProvider.notifier).setColor(color: color, index: index);
+      ref
+          .read(patternColorsProvider.notifier)
+          .setColor(color: color, index: index);
     }
   }
 }
 
 class ColorPickerPage extends StatefulWidget {
   const ColorPickerPage({
-    Key? key,
+    super.key,
     required this.color,
-  }) : super(key: key);
+  });
 
   final Color color;
 

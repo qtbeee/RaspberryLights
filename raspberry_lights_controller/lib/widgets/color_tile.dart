@@ -4,11 +4,11 @@ import 'package:raspberry_lights_controller/utils/color.dart';
 
 class ColorTile extends ConsumerWidget {
   const ColorTile({
-    Key? key,
+    super.key,
     required this.color,
     this.onTap,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   final Color color;
   final VoidCallback? onTap;

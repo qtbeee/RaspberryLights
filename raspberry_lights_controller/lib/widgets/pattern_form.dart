@@ -10,9 +10,9 @@ import 'package:recase/recase.dart';
 
 class PatternForm extends ConsumerWidget {
   const PatternForm({
-    Key? key,
+    super.key,
     required this.data,
-  }) : super(key: key);
+  });
 
   final List<PatternInfo> data;
 
@@ -20,8 +20,8 @@ class PatternForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedPattern = ref.watch(selectedPatternProvider);
     final animationSpeed = ref.watch(animationSpeedProvider);
-    final selectedColors = ref.watch(colorsProvider);
-    final brightness = ref.watch(brightnessProvider);
+    final selectedColors = ref.watch(patternColorsProvider);
+    final brightness = ref.watch(patternBrightnessProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -33,9 +33,7 @@ class PatternForm extends ConsumerWidget {
             value: selectedPattern,
             onChanged: (newValue) {
               ref.read(animationSpeedProvider.notifier).reset();
-              ref
-                  .read(selectedPatternProvider.notifier)
-                  .update((state) => newValue);
+              ref.read(selectedPatternProvider.notifier).setPattern(newValue);
             },
             isExpanded: true,
             underline: Container(
@@ -73,8 +71,8 @@ class PatternForm extends ConsumerWidget {
                         .setSpeed(value.toInt());
                   },
                 ),
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Text('Slower'),
                     Spacer(),
                     Text('Faster'),
@@ -102,11 +100,13 @@ class PatternForm extends ConsumerWidget {
                   value: brightness,
                   divisions: 9,
                   onChanged: (value) {
-                    ref.read(brightnessProvider.notifier).setBrightness(value);
+                    ref
+                        .read(patternBrightnessProvider.notifier)
+                        .setBrightness(value);
                   },
                 ),
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Text('10%'),
                     Spacer(),
                     Text('100%'),
@@ -137,8 +137,8 @@ class PatternForm extends ConsumerWidget {
                   onPressed: () {
                     openColorPicker(context, ref);
                   },
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       Icon(Icons.palette),
                       Icon(
                         Icons.add,
@@ -162,7 +162,7 @@ class PatternForm extends ConsumerWidget {
                   onDelete: selectedColors.length > 1
                       ? () {
                           ref
-                              .read(colorsProvider.notifier)
+                              .read(patternColorsProvider.notifier)
                               .removeColor(index: index);
                         }
                       : null,
@@ -171,7 +171,7 @@ class PatternForm extends ConsumerWidget {
               itemCount: selectedColors.length,
               onReorder: (oldIndex, newIndex) {
                 ref
-                    .read(colorsProvider.notifier)
+                    .read(patternColorsProvider.notifier)
                     .moveColor(oldIndex: oldIndex, newIndex: newIndex);
               },
             ),
