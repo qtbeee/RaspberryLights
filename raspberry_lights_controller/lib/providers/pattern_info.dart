@@ -8,8 +8,14 @@ part 'pattern_info.g.dart';
 @riverpod
 Future<List<PatternInfo>> patternInfo(Ref ref) async {
   final client = ref.watch(networkClientProvider);
+  if (client.options.baseUrl.isEmpty) {
+    throw NoBaseUrlException();
+  }
+
   var response = await client.get("pattern");
   return List.from(response.data['patterns'])
       .map((v) => PatternInfo.fromJson(v))
       .toList();
 }
+
+class NoBaseUrlException implements Exception {}

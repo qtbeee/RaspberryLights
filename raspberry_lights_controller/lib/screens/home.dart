@@ -15,7 +15,6 @@ class Home extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final patternInfo = ref.watch(patternInfoProvider);
-    final host = ref.watch(hostProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -34,30 +33,77 @@ class Home extends ConsumerWidget {
       ),
       body: patternInfo.when(
         data: (data) => PatternForm(data: data),
-        error: (_, __) => Center(
-          child: Column(
-            children: [
-              const Text(
-                'Failed to fetch data.',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              TextButton(
-                  onPressed: () async {
-                    final result = await showDialog<(String, int)>(
-                      builder: (BuildContext context) =>
-                          UpdateHostUrlDialog(host),
-                      context: context,
-                    );
-                    if (result != null) {
-                      ref.read(hostProvider.notifier).setHostUrl(result);
-                    }
-                  },
-                  child: const Text('Edit Connection')),
-            ],
-          ),
-        ),
+        error: (error, __) {
+          if (error is NoBaseUrlException) {
+            return NoBaseUrl();
+          }
+          return FailedToFetch();
+        },
         loading: () => const Loading(),
+        skipLoadingOnRefresh: false,
       ),
+    );
+  }
+}
+
+class NoBaseUrl extends ConsumerWidget {
+  const NoBaseUrl({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "No Saved Connection",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        TextButton(
+            onPressed: () async {
+              final result = await showDialog<(String, int)>(
+                builder: (BuildContext context) => UpdateHostUrlDialog(null),
+                context: context,
+              );
+              if (result != null) {
+                ref.read(hostProvider.notifier).setHostUrl(result);
+              }
+            },
+            child: const Text('Setup')),
+      ],
+    );
+  }
+}
+
+class FailedToFetch extends ConsumerWidget {
+  const FailedToFetch({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final host = ref.watch(hostProvider);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Failed to fetch data.',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        TextButton(
+            onPressed: () async {
+              final result = await showDialog<(String, int)>(
+                builder: (BuildContext context) => UpdateHostUrlDialog(host),
+                context: context,
+              );
+              if (result != null) {
+                ref.read(hostProvider.notifier).setHostUrl(result);
+              }
+            },
+            child: const Text('Edit Connection')),
+      ],
     );
   }
 }
