@@ -1,5 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:raspberry_lights_controller/providers/network.dart';
+
+void openUpdateHostUrlDialog(BuildContext context, WidgetRef ref) async {
+  final host = ref.read(hostProvider);
+  final result = await showDialog<(String, int)>(
+    builder: (BuildContext context) => UpdateHostUrlDialog(host),
+    context: context,
+  );
+  if (result != null) {
+    ref.read(hostProvider.notifier).setHostUrl(result);
+  }
+}
 
 class UpdateHostUrlDialog extends StatefulWidget {
   final (String, int)? initialHost;

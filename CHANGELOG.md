@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+#### Mobile App
+- Settings page for changing connection information whenever you want.
+
 ### Changed
 
 #### Mobile App
 - Upgraded various dependencies on the Flutter side.
 - Instead of having a hardcoded base url, let the user decide where to connect.
 - Don't try to fetch patterns when there is no base url set.
+
+
 
 ## 0.4.0 - 2022-11-17
 

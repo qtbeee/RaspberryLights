@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:raspberry_lights_controller/providers/network.dart';
 import 'package:raspberry_lights_controller/providers/pattern_info.dart';
+import 'package:raspberry_lights_controller/screens/settings.dart';
 import 'package:raspberry_lights_controller/widgets/loading.dart';
 import 'package:raspberry_lights_controller/providers/pattern.dart';
 import 'package:raspberry_lights_controller/widgets/pattern_form.dart';
@@ -28,7 +28,13 @@ class Home extends ConsumerWidget {
               ref.read(patternColorsProvider.notifier).reset();
               ref.invalidate(patternInfoProvider);
             },
-          )
+          ),
+          IconButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => Settings()));
+              },
+              icon: const Icon(Icons.settings))
         ],
       ),
       body: patternInfo.when(
@@ -61,14 +67,8 @@ class NoBaseUrl extends ConsumerWidget {
           textAlign: TextAlign.center,
         ),
         TextButton(
-            onPressed: () async {
-              final result = await showDialog<(String, int)>(
-                builder: (BuildContext context) => UpdateHostUrlDialog(null),
-                context: context,
-              );
-              if (result != null) {
-                ref.read(hostProvider.notifier).setHostUrl(result);
-              }
+            onPressed: () {
+              openUpdateHostUrlDialog(context, ref);
             },
             child: const Text('Setup')),
       ],
@@ -81,8 +81,6 @@ class FailedToFetch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final host = ref.watch(hostProvider);
-
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -93,14 +91,8 @@ class FailedToFetch extends ConsumerWidget {
           textAlign: TextAlign.center,
         ),
         TextButton(
-            onPressed: () async {
-              final result = await showDialog<(String, int)>(
-                builder: (BuildContext context) => UpdateHostUrlDialog(host),
-                context: context,
-              );
-              if (result != null) {
-                ref.read(hostProvider.notifier).setHostUrl(result);
-              }
+            onPressed: () {
+              openUpdateHostUrlDialog(context, ref);
             },
             child: const Text('Edit Connection')),
       ],
