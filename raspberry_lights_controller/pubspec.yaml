@@ -4,7 +4,7 @@ description: An app for controlling the light pattern run by a Raspberry Pi.
 version: 0.4.0
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.8.1 <4.0.0"
   flutter: ">=3.0.0"
 
 dependencies:
@@ -26,7 +26,7 @@ dev_dependencies:
   riverpod_lint: ^2.6.1
   json_serializable: ^6.5.4
   flutter_launcher_icons: ^0.14.1
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
