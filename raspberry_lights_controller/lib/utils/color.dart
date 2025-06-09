@@ -13,15 +13,9 @@ extension LedColor on Color {
     return Color.fromARGB(255, red, green, blue);
   }
 
-  String _componentToHex(int component) {
-    return component.toRadixString(16).padLeft(2, "0");
-  }
-
   String toHexString() {
-    final red = _componentToHex(this.red);
-    final green = _componentToHex(this.green);
-    final blue = _componentToHex(this.blue);
+    final argb = toARGB32().toRadixString(16);
 
-    return "#$red$green$blue".toUpperCase();
+    return "#${argb.substring(2)}".toUpperCase();
   }
 }
