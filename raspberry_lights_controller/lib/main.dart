@@ -12,9 +12,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Lights Controller',
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      darkTheme: ThemeData(colorScheme: const ColorScheme.dark()),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.green,
+          brightness: Brightness.dark,
+        ),
+      ),
       home: const Home(title: 'Lights Controller'),
     );
   }

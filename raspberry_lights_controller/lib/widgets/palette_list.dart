@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PaletteList extends StatelessWidget {
-  const PaletteList({
-    super.key,
-    this.onColorSelected,
-    this.onPaletteSelected,
-  }) : assert(onColorSelected != null || onPaletteSelected != null);
+  const PaletteList({super.key, this.onColorSelected, this.onPaletteSelected})
+    : assert(onColorSelected != null || onPaletteSelected != null);
 
   final ValueChanged<Color>? onColorSelected;
   final ValueChanged<List<Color>>? onPaletteSelected;
@@ -55,11 +52,7 @@ class PaletteList extends StatelessWidget {
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
           title: "Trans Flag",
-          colors: const [
-            Color(0xFF74d7ec),
-            Colors.white,
-            Color(0xFFffafc7),
-          ],
+          colors: const [Color(0xFF74d7ec), Colors.white, Color(0xFFffafc7)],
         ),
         Palette(
           onColorSelected: onColorSelected,
@@ -111,20 +104,13 @@ class PaletteList extends StatelessWidget {
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
           title: "Genderqueer Flag",
-          colors: const [
-            Color(0xFFb57fdd),
-            Colors.white,
-            Color(0xFF49821e),
-          ],
+          colors: const [Color(0xFFb57fdd), Colors.white, Color(0xFF49821e)],
         ),
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
           title: "Intersex Flag",
-          colors: const [
-            Color(0xFFffd800),
-            Color(0xFF7902aa),
-          ],
+          colors: const [Color(0xFFffd800), Color(0xFF7902aa)],
         ),
       ],
     );
@@ -149,8 +135,9 @@ class Palette extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       child: InkWell(
-        onTap:
-            onPaletteSelected != null ? () => onPaletteSelected!(colors) : null,
+        onTap: onPaletteSelected != null
+            ? () => onPaletteSelected!(colors)
+            : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Column(
@@ -174,10 +161,7 @@ class Palette extends StatelessWidget {
                 runSpacing: 14,
                 children: [
                   for (final color in colors)
-                    ColorSquare(
-                      color: color,
-                      onTap: onColorSelected,
-                    ),
+                    ColorSquare(color: color, onTap: onColorSelected),
                 ],
               ),
             ],
@@ -203,11 +187,7 @@ class ColorSquare extends StatelessWidget {
         color: color,
         borderRadius: BorderRadius.circular(4),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black38,
-            offset: Offset(3, 3),
-            blurRadius: 1,
-          ),
+          BoxShadow(color: Colors.black38, offset: Offset(3, 3), blurRadius: 1),
         ],
       ),
       child: InkWell(

@@ -31,9 +31,11 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
   void initState() {
     if (widget.initialHost != null) {}
     _ipController = TextEditingController.fromValue(
-        TextEditingValue(text: widget.initialHost?.$1 ?? ""));
+      TextEditingValue(text: widget.initialHost?.$1 ?? ""),
+    );
     _portController = TextEditingController.fromValue(
-        TextEditingValue(text: widget.initialHost?.$2.toString() ?? ""));
+      TextEditingValue(text: widget.initialHost?.$2.toString() ?? ""),
+    );
     super.initState();
   }
 
@@ -56,16 +58,19 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text("Cancel")),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text("Cancel"),
+        ),
         TextButton(
-            onPressed: () {
-              Navigator.of(context)
-                  .pop((_ipController.text, int.parse(_portController.text)));
-            },
-            child: const Text("Save"))
+          onPressed: () {
+            Navigator.of(
+              context,
+            ).pop((_ipController.text, int.parse(_portController.text)));
+          },
+          child: const Text("Save"),
+        ),
       ],
     );
   }

@@ -9,10 +9,7 @@ import 'package:raspberry_lights_controller/service/pattern.dart';
 import 'package:recase/recase.dart';
 
 class PatternForm extends ConsumerWidget {
-  const PatternForm({
-    super.key,
-    required this.data,
-  });
+  const PatternForm({super.key, required this.data});
 
   final List<PatternInfo> data;
 
@@ -27,7 +24,7 @@ class PatternForm extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
           child: DropdownButton<PatternInfo>(
             hint: const Text("Select a pattern"),
             value: selectedPattern,
@@ -41,19 +38,22 @@ class PatternForm extends ConsumerWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
             items: data
-                .map((info) => DropdownMenuItem(
+                .map(
+                  (info) => DropdownMenuItem(
                     value: info,
-                    child: Text(
-                      info.pattern.titleCase,
-                    )))
+                    child: Text(info.pattern.titleCase),
+                  ),
+                )
                 .toList(),
           ),
         ),
         if (selectedPattern != null && selectedPattern.animationSpeeds > 1) ...[
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text('Speed:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            child: Text(
+              'Speed:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -71,13 +71,7 @@ class PatternForm extends ConsumerWidget {
                         .setSpeed(value.toInt());
                   },
                 ),
-                const Row(
-                  children: [
-                    Text('Slower'),
-                    Spacer(),
-                    Text('Faster'),
-                  ],
-                ),
+                const Row(children: [Text('Slower'), Spacer(), Text('Faster')]),
               ],
             ),
           ),
@@ -86,8 +80,10 @@ class PatternForm extends ConsumerWidget {
         if (selectedPattern != null) ...[
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text('Brightness:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            child: Text(
+              'Brightness:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -105,13 +101,7 @@ class PatternForm extends ConsumerWidget {
                         .setBrightness(value);
                   },
                 ),
-                const Row(
-                  children: [
-                    Text('10%'),
-                    Spacer(),
-                    Text('100%'),
-                  ],
-                ),
+                const Row(children: [Text('10%'), Spacer(), Text('100%')]),
               ],
             ),
           ),
@@ -120,32 +110,35 @@ class PatternForm extends ConsumerWidget {
         if (selectedPattern?.canChooseColor ?? false) ...[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
+            child: Wrap(
               children: [
                 const Text(
                   'Colors:',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
-                ElevatedButton(
-                    onPressed: () {
-                      openPalettePicker(context);
-                    },
-                    child: const Text('Set from Palette')),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    openColorPicker(context, ref);
-                  },
-                  child: const Row(
-                    children: [
-                      Icon(Icons.palette),
-                      Icon(
-                        Icons.add,
-                        size: 14,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        openPalettePicker(context);
+                      },
+                      child: const Text('Set from Palette'),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        openColorPicker(context, ref);
+                      },
+                      child: const Row(
+                        children: [
+                          Icon(Icons.palette),
+                          Icon(Icons.add, size: 14),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -179,11 +172,16 @@ class PatternForm extends ConsumerWidget {
         ] else
           const Spacer(),
         Padding(
-          padding:
-              const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 20),
+          padding: const EdgeInsets.only(
+            top: 8,
+            left: 16,
+            right: 16,
+            bottom: 20,
+          ),
           child: ElevatedButton(
-            onPressed:
-                selectedPattern != null ? () => setLightPattern(ref) : null,
+            onPressed: selectedPattern != null
+                ? () => setLightPattern(ref)
+                : null,
             child: const Text("Set Pattern"),
           ),
         ),

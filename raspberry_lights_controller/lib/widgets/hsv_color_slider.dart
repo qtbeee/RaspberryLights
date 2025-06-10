@@ -63,9 +63,7 @@ class HSVColorSliderState extends State<HSVColorSlider> {
             setState(() {
               hue = newHue;
             });
-            widget.onColorChanged(
-              HSVColor.fromAHSV(1, hue, saturation, 1),
-            );
+            widget.onColorChanged(HSVColor.fromAHSV(1, hue, saturation, 1));
           },
         ),
         _GradientSlider(
@@ -83,9 +81,7 @@ class HSVColorSliderState extends State<HSVColorSlider> {
             setState(() {
               saturation = newSaturation;
             });
-            widget.onColorChanged(
-              HSVColor.fromAHSV(1, hue, saturation, 1),
-            );
+            widget.onColorChanged(HSVColor.fromAHSV(1, hue, saturation, 1));
           },
         ),
       ],

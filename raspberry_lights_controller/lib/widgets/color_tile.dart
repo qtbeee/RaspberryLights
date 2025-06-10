@@ -3,12 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
 
 class ColorTile extends ConsumerWidget {
-  const ColorTile({
-    super.key,
-    required this.color,
-    this.onTap,
-    this.onDelete,
-  });
+  const ColorTile({super.key, required this.color, this.onTap, this.onDelete});
 
   final Color color;
   final VoidCallback? onTap;
@@ -24,9 +19,7 @@ class ColorTile extends ConsumerWidget {
             width: 76,
             child: Text(
               color.toHexString(),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(width: 5),

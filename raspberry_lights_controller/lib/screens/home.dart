@@ -30,16 +30,18 @@ class Home extends ConsumerWidget {
             },
           ),
           IconButton(
-              onPressed: () {
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) => Settings()));
-              },
-              icon: const Icon(Icons.settings))
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => Settings()));
+            },
+            icon: const Icon(Icons.settings),
+          ),
         ],
       ),
       body: patternInfo.when(
         data: (data) => PatternForm(data: data),
-        error: (error, __) {
+        error: (error, _) {
           if (error is NoBaseUrlException) {
             return NoBaseUrl();
           }
@@ -67,10 +69,11 @@ class NoBaseUrl extends ConsumerWidget {
           textAlign: TextAlign.center,
         ),
         TextButton(
-            onPressed: () {
-              openUpdateHostUrlDialog(context, ref);
-            },
-            child: const Text('Setup')),
+          onPressed: () {
+            openUpdateHostUrlDialog(context, ref);
+          },
+          child: const Text('Setup'),
+        ),
       ],
     );
   }
@@ -91,10 +94,11 @@ class FailedToFetch extends ConsumerWidget {
           textAlign: TextAlign.center,
         ),
         TextButton(
-            onPressed: () {
-              openUpdateHostUrlDialog(context, ref);
-            },
-            child: const Text('Edit Connection')),
+          onPressed: () {
+            openUpdateHostUrlDialog(context, ref);
+          },
+          child: const Text('Edit Connection'),
+        ),
       ],
     );
   }

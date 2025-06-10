@@ -11,7 +11,7 @@ class Loading extends StatelessWidget {
         LinearProgressIndicator(),
         Expanded(
           child: Center(child: Text('Fetching available light patterns...')),
-        )
+        ),
       ],
     );
   }

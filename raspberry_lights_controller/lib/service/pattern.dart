@@ -26,6 +26,9 @@ void setLightPattern(WidgetRef ref) {
     "brightness": brightness,
   };
 
-  client.post("pattern",
-      data: data, options: Options(contentType: ContentType.json.toString()));
+  client.post(
+    "pattern",
+    data: data,
+    options: Options(contentType: ContentType.json.toString()),
+  );
 }

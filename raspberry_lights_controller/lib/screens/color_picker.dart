@@ -7,11 +7,7 @@ import 'package:raspberry_lights_controller/widgets/color_tile.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
 import 'package:raspberry_lights_controller/widgets/palette_list.dart';
 
-void openColorPicker(
-  BuildContext context,
-  WidgetRef ref, {
-  int? index,
-}) async {
+void openColorPicker(BuildContext context, WidgetRef ref, {int? index}) async {
   var color = await Navigator.of(context).push<Color>(
     MaterialPageRoute(
       builder: (context) => ColorPickerPage(
@@ -33,10 +29,7 @@ void openColorPicker(
 }
 
 class ColorPickerPage extends StatefulWidget {
-  const ColorPickerPage({
-    super.key,
-    required this.color,
-  });
+  const ColorPickerPage({super.key, required this.color});
 
   final Color color;
 
@@ -62,7 +55,10 @@ class _ColorPickerPageState extends State<ColorPickerPage>
         ),
         title: const Text("Choose a Color"),
         bottom: TabBar(
-          tabs: const [Tab(text: "Custom"), Tab(text: "From Palette")],
+          tabs: const [
+            Tab(text: "Custom"),
+            Tab(text: "From Palette"),
+          ],
           controller: _controller,
         ),
         actions: [
@@ -104,7 +100,8 @@ class _ColorPickerPageState extends State<ColorPickerPage>
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: ThemeData.estimateBrightnessForColor(rgbColor) ==
+                    color:
+                        ThemeData.estimateBrightnessForColor(rgbColor) ==
                             Brightness.light
                         ? Colors.black
                         : Colors.white,

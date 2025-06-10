@@ -11,35 +11,38 @@ class Settings extends ConsumerWidget {
     final host = ref.watch(hostProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Settings"),
-        leading: BackButton(),
-      ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Connection Information",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      appBar: AppBar(title: Text("Settings"), leading: BackButton()),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Connection Information",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      DisplayUrl(host: host),
+                    ],
                   ),
-                  DisplayUrl(host: host),
-                ],
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.edit,
                 ),
-                onPressed: () {
-                  openUpdateHostUrlDialog(context, ref);
-                },
-              )
-            ],
-          ),
-        ],
+                IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () {
+                    openUpdateHostUrlDialog(context, ref);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

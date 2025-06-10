@@ -13,9 +13,9 @@ Future<List<PatternInfo>> patternInfo(Ref ref) async {
   }
 
   var response = await client.get("pattern");
-  return List.from(response.data['patterns'])
-      .map((v) => PatternInfo.fromJson(v))
-      .toList();
+  return List.from(
+    response.data['patterns'],
+  ).map((v) => PatternInfo.fromJson(v)).toList();
 }
 
 class NoBaseUrlException implements Exception {}
