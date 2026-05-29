@@ -1,0 +1,1 @@
+class NoBaseUrlException implements Exception {}

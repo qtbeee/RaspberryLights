@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:raspberry_lights_controller/providers/pattern_info.dart';
+import 'package:raspberry_lights_controller/providers/current_pattern.dart';
+import 'package:raspberry_lights_controller/providers/pattern_list.dart';
 import 'package:raspberry_lights_controller/screens/settings.dart';
+import 'package:raspberry_lights_controller/utils/no_base_url_exception.dart';
+import 'package:raspberry_lights_controller/widgets/current_pattern.dart';
 import 'package:raspberry_lights_controller/widgets/loading.dart';
-import 'package:raspberry_lights_controller/providers/pattern.dart';
-import 'package:raspberry_lights_controller/widgets/pattern_form.dart';
 import 'package:raspberry_lights_controller/widgets/update_host_url_dialog.dart';
 
 class Home extends ConsumerWidget {
@@ -14,7 +15,8 @@ class Home extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final patternInfo = ref.watch(patternInfoProvider);
+    final patternList = ref.watch(patternListProvider);
+    final currentPattern = ref.watch(currentPatternProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -23,10 +25,8 @@ class Home extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              ref.read(animationSpeedProvider.notifier).reset();
-              ref.read(selectedPatternProvider.notifier).reset();
-              ref.read(patternColorsProvider.notifier).reset();
-              ref.invalidate(patternInfoProvider);
+              ref.invalidate(patternListProvider);
+              ref.invalidate(currentPatternProvider);
             },
           ),
           IconButton(
@@ -39,20 +39,29 @@ class Home extends ConsumerWidget {
           ),
         ],
       ),
-      body: patternInfo.when(
-        data: (data) => PatternForm(data: data),
-        error: (error, _) {
-          if (error is NoBaseUrlException) {
-            return NoBaseUrl();
-          }
-          return FailedToFetch();
-        },
-        loading: () => const Loading(),
+      body: currentPattern.when(
+        data: (_) => patternList.when(
+          data: (data) => CurrentPattern(),
+          error: onError,
+          loading: onLoading,
+          skipLoadingOnRefresh: false,
+        ),
+        error: onError,
+        loading: onLoading,
         skipLoadingOnRefresh: false,
       ),
     );
   }
 }
+
+Widget onError(Object error, StackTrace _) {
+  if (error is NoBaseUrlException) {
+    return const NoBaseUrl();
+  }
+  return FailedToFetch(error: error.toString());
+}
+
+Widget onLoading() => const Loading();
 
 class NoBaseUrl extends ConsumerWidget {
   const NoBaseUrl({super.key});
@@ -80,7 +89,8 @@ class NoBaseUrl extends ConsumerWidget {
 }
 
 class FailedToFetch extends ConsumerWidget {
-  const FailedToFetch({super.key});
+  final String error;
+  const FailedToFetch({super.key, required this.error});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,6 +103,7 @@ class FailedToFetch extends ConsumerWidget {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
+        Text(error, textAlign: TextAlign.center),
         TextButton(
           onPressed: () {
             openUpdateHostUrlDialog(context, ref);

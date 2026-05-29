@@ -24,6 +24,7 @@ void setLightPattern(WidgetRef ref) {
         ? ref.read(animationSpeedProvider) - 1
         : null,
     "brightness": brightness,
+    "additionalSettings": null, // TODO
   };
 
   client.post(

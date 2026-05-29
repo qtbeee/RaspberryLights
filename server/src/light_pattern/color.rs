@@ -1,6 +1,8 @@
 use std::str::FromStr;
 
-#[derive(Clone, Copy, Debug)]
+use serde::Serialize;
+
+#[derive(Clone, Copy, Debug, Serialize)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
@@ -42,6 +44,12 @@ impl Color {
             green: ((self.green as f32) * brightness) as u8,
             blue: ((self.blue as f32) * brightness) as u8,
         }
+    }
+
+    /// brightness expected to be 0..=100, but `at_brightness` will clamp it to a safe value anyways
+    pub fn at_brightness_percent(&self, brightness: u8) -> Color {
+        let brightness = brightness as f32 / 100f32;
+        self.at_brightness(brightness)
     }
 }
 

@@ -1,13 +1,15 @@
 use std::num::NonZeroUsize;
 
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
+use serde_json::{Map, Value};
 
-use crate::model::PatternInfo;
+use crate::model::{PatternConfiguration, PatternInfo};
 
 use super::{Color, ColorPattern, Information, LightPattern};
 
 pub struct Breathing {
     led_count: NonZeroUsize,
+    brightness: u8,
     pos: u16,
     colors: Vec<Color>,
     current_color: usize,
@@ -56,12 +58,22 @@ impl LightPattern for Breathing {
 }
 
 impl ColorPattern for Breathing {
-    fn new(leds: NonZeroUsize, speed: usize, brightness: f32, colors: &[Color]) -> Self {
+    fn new(
+        leds: NonZeroUsize,
+        speed: usize,
+        brightness: u8,
+        colors: &[Color],
+        _options: Map<String, Value>,
+    ) -> Self {
         Self {
             led_count: leds,
+            brightness,
             pos: 0,
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
-            colors: colors.iter().map(|c| c.at_brightness(brightness)).collect(),
+            colors: colors
+                .iter()
+                .map(|c| c.at_brightness_percent(brightness))
+                .collect(),
             current_color: if colors.len() == 1 {
                 0
             } else {
@@ -75,8 +87,22 @@ impl Information for Breathing {
     fn get_info() -> PatternInfo {
         PatternInfo {
             pattern: crate::model::PatternName::Breathing,
+            description: &"All lights fade in and out with the chosen color. If more than one color is provided, a single color is chosen for all leds every cycle.",
             can_choose_color: true,
             animation_speeds: Self::SPEEDS.len(),
+            additional_settings: vec![],
+        }
+    }
+
+    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
+        PatternConfiguration {
+            name: crate::model::PatternName::Breathing,
+            animation_speed: Self::SPEEDS
+                .iter()
+                .position(|&s| s == self.sleep_millis as usize),
+            brightness: self.brightness,
+            colors: Option::Some(self.colors.clone()),
+            additional_settings: vec![],
         }
     }
 }

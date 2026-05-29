@@ -1,6 +1,8 @@
 use std::num::NonZeroUsize;
 
-use crate::model::PatternInfo;
+use serde_json::{Map, Value};
+
+use crate::model::{PatternConfiguration, PatternInfo};
 
 use super::{Color, ColorlessPattern, Information, LightPattern};
 
@@ -8,7 +10,7 @@ pub struct RainbowInPlace {
     pos: u8,
     led_count: NonZeroUsize,
     sleep_millis: u64,
-    brightness: f32,
+    brightness: u8,
 }
 
 impl RainbowInPlace {
@@ -17,7 +19,7 @@ impl RainbowInPlace {
 
 impl LightPattern for RainbowInPlace {
     fn get_frame(&self) -> Vec<Color> {
-        let color = Color::wheel(self.pos).at_brightness(self.brightness);
+        let color = Color::wheel(self.pos).at_brightness_percent(self.brightness);
 
         vec![color; usize::from(self.led_count)]
     }
@@ -32,7 +34,7 @@ impl LightPattern for RainbowInPlace {
 }
 
 impl ColorlessPattern for RainbowInPlace {
-    fn new(leds: NonZeroUsize, speed: usize, brightness: f32) -> Self {
+    fn new(leds: NonZeroUsize, speed: usize, brightness: u8, _options: Map<String, Value>) -> Self {
         Self {
             pos: 0,
             led_count: leds,
@@ -46,8 +48,22 @@ impl Information for RainbowInPlace {
     fn get_info() -> PatternInfo {
         PatternInfo {
             pattern: crate::model::PatternName::RainbowInPlace,
+            description: &"All leds change color together in a rainbow pattern.",
             can_choose_color: false,
             animation_speeds: Self::SPEEDS.len(),
+            additional_settings: vec![],
+        }
+    }
+
+    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
+        PatternConfiguration {
+            name: crate::model::PatternName::RainbowInPlace,
+            animation_speed: Self::SPEEDS
+                .iter()
+                .position(|&s| s == self.sleep_millis as usize),
+            brightness: self.brightness,
+            colors: Option::None,
+            additional_settings: vec![],
         }
     }
 }

@@ -1,11 +1,14 @@
 use std::num::NonZeroUsize;
 
-use crate::model::PatternInfo;
+use serde_json::{Map, Value};
+
+use crate::model::{PatternConfiguration, PatternInfo};
 
 use super::{Color, ColorPattern, Information, LightPattern};
 
 pub struct Scroll {
     pos: u8,
+    brightness: u8,
     leds: NonZeroUsize,
     colors: Vec<Color>,
     sleep_millis: u64,
@@ -50,11 +53,21 @@ impl LightPattern for Scroll {
 }
 
 impl ColorPattern for Scroll {
-    fn new(leds: NonZeroUsize, speed: usize, brightness: f32, colors: &[Color]) -> Self {
+    fn new(
+        leds: NonZeroUsize,
+        speed: usize,
+        brightness: u8,
+        colors: &[Color],
+        _options: Map<String, Value>,
+    ) -> Self {
         Self {
             leds,
+            brightness,
             pos: 0,
-            colors: colors.iter().map(|c| c.at_brightness(brightness)).collect(),
+            colors: colors
+                .iter()
+                .map(|c| c.at_brightness_percent(brightness))
+                .collect(),
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
         }
     }
@@ -64,8 +77,22 @@ impl Information for Scroll {
     fn get_info() -> PatternInfo {
         PatternInfo {
             pattern: crate::model::PatternName::Scroll,
+            description: &"Marquee-style scrolling lights pattern. Not recommended for those with photosensitivity.",
             can_choose_color: true,
             animation_speeds: Self::SPEEDS.len(),
+            additional_settings: vec![],
+        }
+    }
+
+    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
+        PatternConfiguration {
+            name: crate::model::PatternName::Scroll,
+            animation_speed: Self::SPEEDS
+                .iter()
+                .position(|&s| s == self.sleep_millis as usize),
+            brightness: self.brightness,
+            colors: Option::Some(self.colors.clone()),
+            additional_settings: vec![],
         }
     }
 }

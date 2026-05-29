@@ -2,10 +2,11 @@ mod light_pattern;
 mod model;
 mod pattern;
 
-use axum::{routing::get, Extension, Router};
-use light_pattern::{ColorlessPattern, LightPattern, RainbowInPlace};
+use axum::{Extension, Router, routing::get};
+use light_pattern::LightPattern;
+use serde_json::Map;
 
-use std::{num::NonZeroUsize, time::Duration};
+use std::{num::NonZeroUsize, str::FromStr, sync::Arc, time::Duration};
 use tokio::{sync::mpsc::error::TryRecvError, time::sleep};
 use tower_http::trace::TraceLayer;
 use ws2818_rgb_led_spi_driver::{
@@ -15,7 +16,10 @@ use ws2818_rgb_led_spi_driver::{
     timings::encoding::{WS2812_LOGICAL_ONE_BYTES, WS2812_LOGICAL_ZERO_BYTES},
 };
 
-use crate::pattern::{get_patterns, set_pattern};
+use crate::{
+    light_pattern::{BreathingConfigurable, Color, ColorPattern, Information, Twinkle},
+    pattern::{ServerState, get_current_pattern, get_patterns, set_pattern},
+};
 
 #[tokio::main]
 async fn main() {
@@ -27,13 +31,29 @@ async fn main() {
     let leds_in_use = NonZeroUsize::new(50).unwrap();
     let total_leds: usize = 50;
 
+    let initial_pattern = Box::new(BreathingConfigurable::new(
+        leds_in_use,
+        0,
+        100,
+        &[Color::from_str("#00af00").unwrap()],
+        Map::new(),
+    ));
+
     let (send, rcv) = tokio::sync::mpsc::channel(1);
 
+    let server_state = Arc::new(ServerState {
+        sender: send,
+        leds_in_use: leds_in_use,
+        current_pattern_settings: initial_pattern.get_current_settings(),
+    });
+
     let app = Router::new()
-        .route("/pattern", get(get_patterns).post(set_pattern))
+        .route("/patterns", get(get_patterns))
+        .route("/pattern", get(get_current_pattern).post(set_pattern))
         .layer(TraceLayer::new_for_http())
-        .layer(Extension(send))
-        .layer(Extension(leds_in_use));
+        // .layer(Extension(send))
+        // .layer(Extension(leds_in_use));
+        .layer(Extension(server_state));
 
     // NOTE: to get around the spi handler not being `Send`, we're running the axum server
     // in a separate thread instead of the led runner function!
@@ -46,27 +66,32 @@ async fn main() {
     })
     .expect("Failed to set ctrl+c handler D:");
 
-    run_lights(rcv, total_leds, leds_in_use).await;
+    run_lights(rcv, total_leds, leds_in_use, initial_pattern).await;
 }
 
 async fn run_lights(
     mut receiver: tokio::sync::mpsc::Receiver<Box<dyn LightPattern + Send>>,
     total_leds: usize,
     leds_in_use: NonZeroUsize,
+    starting_pattern: Box<dyn LightPattern + Send>,
 ) {
     // Set up spi pin
     let mut attempts = 0;
     let mut adapter = loop {
         attempts += 1;
-       if let Ok(adapter) = WS28xxSpiAdapter::new("/dev/spidev0.0") {
-         break adapter;
-       } else {
-         println!("attempt {}: spi device not found. sleeping for 5 seconds", attempts);
-         sleep(Duration::from_secs(5)).await;
-       }
+        if let Ok(adapter) = WS28xxSpiAdapter::new("/dev/spidev0.0") {
+            break adapter;
+        } else {
+            println!(
+                "attempt {}: spi device not found. sleeping for 5 seconds",
+                attempts
+            );
+            sleep(Duration::from_secs(5)).await;
+        }
     };
 
-    let mut pattern: Box<dyn LightPattern> = Box::new(RainbowInPlace::new(leds_in_use, 0, 1.0));
+    // let mut pattern: Box<dyn LightPattern> = Box::new(RainbowInPlace::new(leds_in_use, 0, 1.0));
+    let mut pattern: Box<dyn LightPattern> = starting_pattern;
 
     loop {
         match receiver.try_recv() {
@@ -75,7 +100,6 @@ async fn run_lights(
                 pattern = new_pattern;
             }
             // If the server closes the connection, we should stop too!
-            // TODO: clear lights before we're done
             Err(TryRecvError::Disconnected) => {
                 adapter.clear(usize::from(leds_in_use));
                 return;

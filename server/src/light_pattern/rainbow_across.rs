@@ -1,6 +1,8 @@
 use std::num::NonZeroUsize;
 
-use crate::model::PatternInfo;
+use serde_json::{Map, Value};
+
+use crate::model::{PatternConfiguration, PatternInfo};
 
 use super::{Color, ColorlessPattern, Information, LightPattern};
 
@@ -8,7 +10,7 @@ pub struct RainbowAcross {
     pos: u8,
     led_count: NonZeroUsize,
     sleep_millis: u64,
-    brightness: f32,
+    brightness: u8,
 }
 
 impl RainbowAcross {
@@ -23,7 +25,8 @@ impl LightPattern for RainbowAcross {
                 // so it can't fail to cast to u8 and also doesn't do weird truncation.
                 let n = n % usize::from(u8::MAX);
 
-                Color::wheel(self.pos.overflowing_add(n as u8).0).at_brightness(self.brightness)
+                Color::wheel(self.pos.overflowing_add(n as u8).0)
+                    .at_brightness_percent(self.brightness)
             })
             .collect()
     }
@@ -38,7 +41,7 @@ impl LightPattern for RainbowAcross {
 }
 
 impl ColorlessPattern for RainbowAcross {
-    fn new(leds: NonZeroUsize, speed: usize, brightness: f32) -> Self {
+    fn new(leds: NonZeroUsize, speed: usize, brightness: u8, _options: Map<String, Value>) -> Self {
         Self {
             pos: 0,
             led_count: leds,
@@ -52,8 +55,22 @@ impl Information for RainbowAcross {
     fn get_info() -> PatternInfo {
         PatternInfo {
             pattern: crate::model::PatternName::RainbowAcross,
+            description: &"Rainbow gradient travels over the leds over time",
             can_choose_color: false,
             animation_speeds: Self::SPEEDS.len(),
+            additional_settings: vec![],
+        }
+    }
+
+    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
+        PatternConfiguration {
+            name: crate::model::PatternName::RainbowAcross,
+            animation_speed: Self::SPEEDS
+                .iter()
+                .position(|&s| s == self.sleep_millis as usize),
+            brightness: self.brightness,
+            colors: Option::None,
+            additional_settings: vec![],
         }
     }
 }

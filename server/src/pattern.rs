@@ -1,15 +1,22 @@
-use std::{num::NonZeroUsize, str::FromStr};
+use std::{num::NonZeroUsize, str::FromStr, sync::Arc};
 
-use axum::{extract, Extension, Json};
+use axum::{Extension, Json, extract};
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 
 use crate::{
     light_pattern::{
-        Breathing, Color, ColorPattern, ColorlessPattern, Critmas, Information, LightPattern,
-        RainbowAcross, RainbowInPlace, Scroll, SolidColor, Twinkle,
+        Breathing, BreathingConfigurable, Color, ColorPattern, ColorlessPattern, Critmas,
+        Information, LightPattern, RainbowAcross, RainbowInPlace, Scroll, SolidColor, Twinkle,
     },
-    model::{PatternInfo, PatternName},
+    model::{PatternConfiguration, PatternInfo, PatternName},
 };
+
+pub struct ServerState {
+    pub sender: tokio::sync::mpsc::Sender<Box<dyn LightPattern + Send>>,
+    pub leds_in_use: NonZeroUsize,
+    pub current_pattern_settings: PatternConfiguration,
+}
 
 #[derive(Serialize)]
 pub struct Patterns {
@@ -23,13 +30,15 @@ pub struct PatternRequest {
     pub pattern: PatternName,
     pub colors: Option<Vec<String>>,
     pub animation_speed: Option<usize>,
-    pub brightness: Option<f32>,
+    pub brightness: Option<u8>,
+    pub additional_options: Option<Map<String, Value>>,
 }
 
 pub async fn get_patterns() -> Json<Patterns> {
     Json(Patterns {
         patterns: vec![
             Breathing::get_info(),
+            BreathingConfigurable::get_info(),
             Critmas::get_info(),
             RainbowAcross::get_info(),
             RainbowInPlace::get_info(),
@@ -40,9 +49,14 @@ pub async fn get_patterns() -> Json<Patterns> {
     })
 }
 
+pub async fn get_current_pattern(
+    Extension(server_state): Extension<Arc<ServerState>>,
+) -> Json<PatternConfiguration> {
+    Json(server_state.current_pattern_settings.clone())
+}
+
 pub async fn set_pattern(
-    Extension(sender): Extension<tokio::sync::mpsc::Sender<Box<dyn LightPattern + Send>>>,
-    Extension(leds_in_use): Extension<NonZeroUsize>,
+    Extension(server_state): Extension<Arc<ServerState>>,
     Json(request): extract::Json<PatternRequest>,
 ) {
     let colors = request.colors.as_ref().map(|c| {
@@ -51,45 +65,64 @@ pub async fn set_pattern(
             .collect::<Vec<_>>()
     });
     let animation_speed = request.animation_speed.unwrap_or(0);
-    let brightness = request.brightness.map(|b| b.clamp(0.1, 1.0)).unwrap_or(1.0);
+    let brightness = request.brightness.map(|b| b.clamp(10, 100)).unwrap_or(100);
+    let options = request.additional_options.unwrap_or(Map::new());
 
     let pattern: Box<dyn LightPattern + Send> = match request.pattern {
         PatternName::Breathing => Box::new(Breathing::new(
-            leds_in_use,
+            server_state.leds_in_use,
             animation_speed,
             brightness,
             &colors.expect("breathing pattern needs at least one color!"),
+            options,
         )),
-        PatternName::Critmas => Box::new(Critmas::new(leds_in_use, animation_speed, brightness)),
-        PatternName::RainbowAcross => Box::new(RainbowAcross::new(
-            leds_in_use,
+        PatternName::BreathingConfigurable => Box::new(BreathingConfigurable::new(
+            server_state.leds_in_use,
             animation_speed,
             brightness,
+            &colors.expect("breating pattern needs at least one color!"),
+            options,
+        )),
+        PatternName::Critmas => Box::new(Critmas::new(
+            server_state.leds_in_use,
+            animation_speed,
+            brightness,
+            options,
+        )),
+        PatternName::RainbowAcross => Box::new(RainbowAcross::new(
+            server_state.leds_in_use,
+            animation_speed,
+            brightness,
+            options,
         )),
         PatternName::RainbowInPlace => Box::new(RainbowInPlace::new(
-            leds_in_use,
+            server_state.leds_in_use,
             animation_speed,
             brightness,
+            options,
         )),
         PatternName::Scroll => Box::new(Scroll::new(
-            leds_in_use,
+            server_state.leds_in_use,
             animation_speed,
             brightness,
             &colors.expect("scroll pattern needs at least one color!"),
+            options,
         )),
         PatternName::SolidColor => Box::new(SolidColor::new(
-            leds_in_use,
+            server_state.leds_in_use,
             animation_speed,
             brightness,
             &colors.expect("solid color pattern needs at least one color!"),
+            options,
         )),
         PatternName::Twinkle => Box::new(Twinkle::new(
-            leds_in_use,
+            server_state.leds_in_use,
             animation_speed,
             brightness,
             &colors.expect("twinkle pattern needs at least one color!"),
+            options,
         )),
     };
 
-    let _ = sender.send(pattern).await;
+    let _ = server_state.sender.send(pattern).await;
 }

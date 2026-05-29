@@ -12,7 +12,11 @@ class SelectedPattern extends _$SelectedPattern {
   PatternInfo? build() => defaultPattern;
 
   void setPattern(PatternInfo? pattern) => state = pattern;
-  void reset() => setPattern(defaultPattern);
+
+  void reset() {
+    setPattern(defaultPattern);
+    // ref.invalidate(customSettingsProvider);
+  }
 }
 
 @riverpod
@@ -23,6 +27,7 @@ class AnimationSpeed extends _$AnimationSpeed {
   int build() => defaultSpeed;
 
   void setSpeed(int speed) => state = speed;
+
   void reset() => setSpeed(defaultSpeed);
 }
 
@@ -78,3 +83,28 @@ class PatternColors extends _$PatternColors {
 
   void reset() => setColors(defaultColors);
 }
+
+// @riverpod
+// class CustomSettings extends _$CustomSettings {
+//   @override
+//   Map<String, int> build() {
+//     final selectedPattern = ref.read(selectedPatternProvider);
+//     if (selectedPattern == null) {
+//       return {};
+//     } else {
+//       final settingsMap = <String, int>{};
+//       selectedPattern.additionalSettings.forEach((setting) {
+//         switch (setting.settingType) {
+//           case "Number":
+//             return
+//           case "MultipleChoice":
+//             break;
+//           default:
+//             break;
+//         }
+//       });
+//
+//       return settingsMap;
+//     }
+//   }
+// }

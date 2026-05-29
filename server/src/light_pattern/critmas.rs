@@ -1,8 +1,9 @@
 use std::num::NonZeroUsize;
 
-use rand::{distributions::Uniform, thread_rng, Rng};
+use rand::{Rng, distributions::Uniform, thread_rng};
+use serde_json::{Map, Value};
 
-use crate::model::PatternInfo;
+use crate::model::{PatternConfiguration, PatternInfo};
 
 use super::{Color, ColorlessPattern, Information, LightPattern};
 
@@ -38,7 +39,7 @@ pub struct Critmas {
     pos: u16,
     current_colors: Vec<u8>,
     sleep_millis: u64,
-    brightness: f32,
+    brightness: u8,
 }
 
 impl Critmas {
@@ -59,7 +60,7 @@ impl LightPattern for Critmas {
                 let x = (self.pos as f32).to_radians();
                 CRITMAS_COLORS[*c as usize]
                     .at_brightness(x.sin())
-                    .at_brightness(self.brightness)
+                    .at_brightness_percent(self.brightness)
             })
             .collect()
     }
@@ -78,7 +79,7 @@ impl LightPattern for Critmas {
 }
 
 impl ColorlessPattern for Critmas {
-    fn new(leds: NonZeroUsize, speed: usize, brightness: f32) -> Self {
+    fn new(leds: NonZeroUsize, speed: usize, brightness: u8, _options: Map<String, Value>) -> Self {
         let range = Uniform::new(0, CRITMAS_COLORS.len() as u8);
 
         Self {
@@ -97,8 +98,22 @@ impl Information for Critmas {
     fn get_info() -> PatternInfo {
         PatternInfo {
             pattern: crate::model::PatternName::Critmas,
+            description: &"Similar to `Breathing` pattern, but the colors are fixed, and randomized per bulb.",
             can_choose_color: false,
             animation_speeds: Self::SPEEDS.len(),
+            additional_settings: vec![],
+        }
+    }
+
+    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
+        PatternConfiguration {
+            name: crate::model::PatternName::Critmas,
+            animation_speed: Self::SPEEDS
+                .iter()
+                .position(|&s| s == self.sleep_millis as usize),
+            brightness: self.brightness,
+            colors: Option::None,
+            additional_settings: vec![],
         }
     }
 }
