@@ -82,7 +82,7 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
             icon: const Icon(Icons.check),
           ),
         ],
-        title: const Text("Edit Pattern Settings"),
+        title: const Text('Edit Pattern Settings'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -104,7 +104,7 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
                 final settingInfo = widget.patternInfo.additionalSettings
                     .firstWhere((s) => s.name == setting.name);
 
-                if (settingInfo.settingType == "Multiple Choice") {
+                if (settingInfo.settingType == 'Multiple Choice') {
                   return _DropdownSetting(
                     name: setting.name,
                     value: setting.value,
@@ -273,14 +273,14 @@ class _AnimationSpeedSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SliderSetting(
-      name: "Animation Speed",
+      name: 'Animation Speed',
       value: value,
       min: 0,
       max: speedCount - 1,
       isPercent: false,
       onChanged: onChanged,
-      minLabel: "Slower",
-      maxLabel: "Faster",
+      minLabel: 'Slower',
+      maxLabel: 'Faster',
       showLabel: false,
     );
   }
@@ -295,7 +295,7 @@ class _BrightnessSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SliderSetting(
-      name: "Brightness",
+      name: 'Brightness',
       value: value,
       min: 10,
       max: 100,

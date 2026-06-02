@@ -73,7 +73,7 @@ class NoBaseUrl extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "No Saved Connection",
+          'No Saved Connection',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),

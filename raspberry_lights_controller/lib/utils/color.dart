@@ -16,6 +16,6 @@ extension LedColor on Color {
   String toHexString() {
     final argb = toARGB32().toRadixString(16);
 
-    return "#${argb.substring(2)}".toUpperCase();
+    return '#${argb.substring(2)}'.toUpperCase();
   }
 }

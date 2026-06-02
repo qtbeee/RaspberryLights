@@ -27,7 +27,7 @@ class PaletteList extends StatelessWidget {
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Critmas",
+          title: 'Critmas',
           colors: const [
             Color(0xFFFF5aA0),
             Color(0xFFdda019),
@@ -39,7 +39,7 @@ class PaletteList extends StatelessWidget {
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Pride Flag",
+          title: 'Pride Flag',
           colors: const [
             Color(0xFFE50000),
             Color(0xFFff8d00),
@@ -52,13 +52,13 @@ class PaletteList extends StatelessWidget {
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Trans Flag",
+          title: 'Trans Flag',
           colors: const [Color(0xFF74d7ec), Colors.white, Color(0xFFffafc7)],
         ),
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Bisexual Flag",
+          title: 'Bisexual Flag',
           colors: const [
             Color(0xFFd60270),
             Color(0xFF9b4f96),
@@ -68,7 +68,7 @@ class PaletteList extends StatelessWidget {
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Lesbian Flag",
+          title: 'Lesbian Flag',
           colors: const [
             Color(0xFFd62800),
             Color(0xFFff9b56),
@@ -80,7 +80,7 @@ class PaletteList extends StatelessWidget {
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Gay Flag",
+          title: 'Gay Flag',
           colors: const [
             Color(0xFF078d70),
             Color(0xFF26ceaa),
@@ -94,7 +94,7 @@ class PaletteList extends StatelessWidget {
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Pansexual Flag",
+          title: 'Pansexual Flag',
           colors: const [
             Color(0xFFff1c8d),
             Color(0xFFffd700),
@@ -104,13 +104,13 @@ class PaletteList extends StatelessWidget {
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Genderqueer Flag",
+          title: 'Genderqueer Flag',
           colors: const [Color(0xFFb57fdd), Colors.white, Color(0xFF49821e)],
         ),
         Palette(
           onColorSelected: onColorSelected,
           onPaletteSelected: onPaletteSelected,
-          title: "Intersex Flag",
+          title: 'Intersex Flag',
           colors: const [Color(0xFFffd800), Color(0xFF7902aa)],
         ),
       ],

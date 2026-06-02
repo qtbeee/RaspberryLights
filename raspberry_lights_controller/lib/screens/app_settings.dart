@@ -11,7 +11,7 @@ class AppSettings extends ConsumerWidget {
     final host = ref.watch(hostProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text("Settings"), leading: BackButton()),
+      appBar: AppBar(title: Text('Settings'), leading: BackButton()),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
@@ -23,7 +23,7 @@ class AppSettings extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Connection Information",
+                        'Connection Information',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
@@ -57,10 +57,10 @@ class DisplayUrl extends StatelessWidget {
   Widget build(BuildContext context) {
     final host = this.host;
     if (host != null) {
-      return Text("${host.$1}:${host.$2}");
+      return Text('${host.$1}:${host.$2}');
     } else {
       return Text(
-        "Not Configured",
+        'Not Configured',
         style: TextStyle(fontStyle: FontStyle.italic),
       );
     }

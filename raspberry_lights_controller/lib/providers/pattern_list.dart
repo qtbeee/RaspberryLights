@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/models/pattern_info.dart';
 import 'package:raspberry_lights_controller/providers/network.dart';
 import 'package:raspberry_lights_controller/utils/exception.dart';
@@ -13,7 +12,7 @@ Future<List<PatternInfo>> patternList(Ref ref) async {
     throw NoBaseUrlException();
   }
 
-  var response = await client.get("patterns");
+  var response = await client.get('patterns');
   return List.from(
     response.data['patterns'],
   ).map((v) => PatternInfo.fromJson(v)).toList();

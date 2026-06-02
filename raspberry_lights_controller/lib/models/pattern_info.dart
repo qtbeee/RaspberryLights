@@ -38,13 +38,13 @@ class PatternInfo {
 
   @override
   String toString() {
-    return """{
+    return '''{
       patternId: $patternId,
       name: $name,
       description: $description,
       canChooseColor: $canChooseColor,
       animationSpeeds: $animationSpeeds,
       additionalSettings: $additionalSettings,
-    }""";
+    }''';
   }
 }

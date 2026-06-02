@@ -42,7 +42,7 @@ class PatternConfigurationSetting {
 
   @override
   String toString() {
-    return "{ name: $name, value: $value }";
+    return '{ name: $name, value: $value }';
   }
 }
 
@@ -112,7 +112,7 @@ class PatternConfiguration {
 
   @override
   String toString() {
-    return """
+    return '''
 {
 patternId: $patternId,
 animationSpeed: $animationSpeed,
@@ -120,6 +120,6 @@ brightness: $brightness,
 colors: $colors,
 additionalSettings: $additionalSettings,
 }
-""";
+''';
   }
 }

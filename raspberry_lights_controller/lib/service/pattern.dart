@@ -19,15 +19,15 @@ void setLightPattern(
   );
 
   final data = {
-    "patternId": patternConfiguration.patternId,
-    "colors": selectedPattern.canChooseColor
+    'patternId': patternConfiguration.patternId,
+    'colors': selectedPattern.canChooseColor
         ? patternConfiguration.colors?.map((c) => c.toHexString()).toList()
         : null,
-    "animationSpeed": selectedPattern.animationSpeeds > 1
+    'animationSpeed': selectedPattern.animationSpeeds > 1
         ? patternConfiguration.animationSpeed
         : null,
-    "brightness": patternConfiguration.brightness,
-    "additionalSettings": selectedPattern.additionalSettings.isNotEmpty
+    'brightness': patternConfiguration.brightness,
+    'additionalSettings': selectedPattern.additionalSettings.isNotEmpty
         ? patternConfiguration.additionalSettings
               .map(
                 (setting) => PatternConfigurationSetting(
@@ -40,7 +40,7 @@ void setLightPattern(
   };
 
   await client.post(
-    "pattern",
+    'pattern',
     data: data,
     options: Options(contentType: ContentType.json.toString()),
   );

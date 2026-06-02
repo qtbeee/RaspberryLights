@@ -47,11 +47,10 @@ class _ColorsEditorPageState extends ConsumerState<ColorsEditorPage> {
     setState(() => colors = [...colors, color]);
   }
 
-  void moveColor({required int oldIndex, required int newIndex}) {
+  void moveColor(int oldIndex, int newIndex) {
     final newColors = [...colors];
     final movedColor = newColors.removeAt(oldIndex);
-    final insertionIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    newColors.insert(insertionIndex, movedColor);
+    newColors.insert(newIndex, movedColor);
 
     setState(() => colors = newColors);
   }
@@ -72,7 +71,7 @@ class _ColorsEditorPageState extends ConsumerState<ColorsEditorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Edit Colors"),
+        title: const Text('Edit Colors'),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
@@ -119,7 +118,7 @@ class _ColorsEditorPageState extends ConsumerState<ColorsEditorPage> {
                           addColor(color: color);
                         }
                       },
-                      label: const Text("Add Color"),
+                      label: const Text('Add Color'),
                       icon: Icon(Icons.add),
                     ),
                   ],
@@ -145,9 +144,7 @@ class _ColorsEditorPageState extends ConsumerState<ColorsEditorPage> {
                 );
               },
               itemCount: colors.length,
-              onReorder: (oldIndex, newIndex) {
-                moveColor(oldIndex: oldIndex, newIndex: newIndex);
-              },
+              onReorderItem: moveColor,
             ),
           ),
         ],

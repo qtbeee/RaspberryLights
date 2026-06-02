@@ -8,11 +8,11 @@ part 'saved_color.g.dart';
 
 @riverpod
 class SavedColors extends _$SavedColors {
-  static const String savedColorKey = "savedColors";
+  static const String savedColorKey = 'savedColors';
 
   @override
   List<Color> build() {
-    final preferences = ref.watch(sharedPreferencesProvider).valueOrNull;
+    final preferences = ref.watch(sharedPreferencesProvider).value;
     return preferences
             ?.getStringList(savedColorKey)
             ?.map((item) => LedColor.fromShortHex(item))
@@ -28,7 +28,7 @@ class SavedColors extends _$SavedColors {
       state = [...state, color];
     }
 
-    final preferences = ref.read(sharedPreferencesProvider).valueOrNull;
+    final preferences = ref.read(sharedPreferencesProvider).value;
     await preferences?.setStringList(savedColorKey, _stateToStringList());
   }
 
@@ -36,7 +36,7 @@ class SavedColors extends _$SavedColors {
     final newState = state.toList()..remove(color);
     state = newState;
 
-    final preferences = ref.read(sharedPreferencesProvider).valueOrNull;
+    final preferences = ref.read(sharedPreferencesProvider).value;
     await preferences?.setStringList(savedColorKey, _stateToStringList());
   }
 }

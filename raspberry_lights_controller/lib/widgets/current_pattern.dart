@@ -48,7 +48,7 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
             padding: const EdgeInsets.only(left: 16),
             child: Row(
               children: [
-                Text("Pattern", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('Pattern', style: TextStyle(fontWeight: FontWeight.bold)),
                 Spacer(),
                 Text(selectedPattern.name),
                 PopupMenuButton(
@@ -89,7 +89,7 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                 children: [
                   Center(
                     child: Text(
-                      "Main Settings",
+                      'Main Settings',
                       style: TextStyle(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
@@ -144,7 +144,7 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                   children: [
                     Center(
                       child: Text(
-                        "Colors",
+                        'Colors',
                         style: TextStyle(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
@@ -203,7 +203,7 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                       onPressed: hasChanges
                           ? () => setLightPattern(ref, patternConfiguration)
                           : null,
-                      label: Text("Save Changes"),
+                      label: Text('Save Changes'),
                       icon: Icon(Icons.check),
                     ),
                   ),
@@ -216,7 +216,7 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                             })
                           : null,
                       icon: Icon(Icons.undo),
-                      label: Text("Clear Changes"),
+                      label: Text('Clear Changes'),
                     ),
                   ),
                 ],
@@ -295,7 +295,7 @@ class BrightnessEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SummaryEntry(title: "Brightness", value: "$brightness%");
+    return SummaryEntry(title: 'Brightness', value: '$brightness%');
   }
 }
 
@@ -309,7 +309,7 @@ class AnimationSpeedEntry extends StatelessWidget {
     // Shifting from 0-indexed to 1-indexed here because 0 implies no movement
     final value = animationSpeed + 1;
 
-    return SummaryEntry(title: "Animation Speed", value: "$value");
+    return SummaryEntry(title: 'Animation Speed', value: '$value');
   }
 }
 
@@ -329,8 +329,8 @@ class AdditionalSettingEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     final String valueText;
 
-    if (patternSettingInfo.settingType == "Number") {
-      valueText = patternSettingInfo.isPercent ? "$value%" : value.toString();
+    if (patternSettingInfo.settingType == 'Number') {
+      valueText = patternSettingInfo.isPercent ? '$value%' : value.toString();
     } else {
       valueText = patternSettingInfo.options![value];
     }

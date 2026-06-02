@@ -27,7 +27,7 @@ class PatternSetting {
   Map<String, dynamic> toJson() => _$PatternSettingToJson(this);
 
   String get settingType =>
-      min != null && max != null ? "Number" : "Multiple Choice";
+      min != null && max != null ? 'Number' : 'Multiple Choice';
 
   @override
   bool operator ==(Object other) =>
@@ -38,5 +38,5 @@ class PatternSetting {
 
   @override
   String toString() =>
-      "{ name: $name, description: $description, isPercent: $isPercent, type: $settingType }";
+      '{ name: $name, description: $description, isPercent: $isPercent, type: $settingType }';
 }

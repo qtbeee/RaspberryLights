@@ -28,7 +28,7 @@ class _ColorPickerPageState extends State<ColorPickerPage>
   late HSVColor color = HSVColor.fromColor(widget.initialColor);
   Color get rgbColor => color.toColor();
 
-  final _tabs = const [Tab(text: "Custom"), Tab(text: "From Palette")];
+  final _tabs = const [Tab(text: 'Custom'), Tab(text: 'From Palette')];
   late final TabController _controller = TabController(
     length: _tabs.length,
     vsync: this,
@@ -38,7 +38,7 @@ class _ColorPickerPageState extends State<ColorPickerPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Choose a Color"),
+        title: const Text('Choose a Color'),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
@@ -156,13 +156,13 @@ class _SavedColorList extends ConsumerWidget {
           child: Row(
             children: [
               const Text(
-                "Favorite Colors:",
+                'Favorite Colors:',
                 textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 18),
               ),
               const Spacer(),
               TextButton(
-                child: const Text("Add to Favorites"),
+                child: const Text('Add to Favorites'),
                 onPressed: () {
                   ref.read(savedColorsProvider.notifier).saveColor(color);
                 },

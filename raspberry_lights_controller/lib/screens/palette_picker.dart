@@ -15,7 +15,7 @@ class PalettePicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Choose Palette"),
+        title: const Text('Choose Palette'),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();

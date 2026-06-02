@@ -28,8 +28,8 @@ class UpdateHostUrlDialog extends StatefulWidget {
 }
 
 class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
-  final TextEditingController _ipController = TextEditingController(text: "");
-  final TextEditingController _portController = TextEditingController(text: "");
+  final TextEditingController _ipController = TextEditingController(text: '');
+  final TextEditingController _portController = TextEditingController(text: '');
   String? resolvedHost;
 
   bool isValidHost = false;
@@ -38,14 +38,14 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
   bool get isAllValid =>
       isValidHost && _ipController.text == resolvedHost && isValidPort;
 
-  final _bonsoirClient = BonsoirDiscovery(type: "_workstation._tcp");
+  final _bonsoirClient = BonsoirDiscovery(type: '_workstation._tcp');
   final _hostnames = <String, String>{};
 
   @override
   initState() {
     if (widget.initialHost != null) {
-      _ipController.text = widget.initialHost?.$1 ?? "";
-      _portController.text = widget.initialHost?.$2.toString() ?? "";
+      _ipController.text = widget.initialHost?.$1 ?? '';
+      _portController.text = widget.initialHost?.$2.toString() ?? '';
     }
 
     setupBonsoir();
@@ -56,29 +56,43 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
   }
 
   Future<void> setupBonsoir() async {
-    await _bonsoirClient.ready;
+    await _bonsoirClient.initialize();
     _bonsoirClient.eventStream?.listen((event) {
-      if (event.type == BonsoirDiscoveryEventType.discoveryServiceFound) {
-        log('Service found : ${event.service?.toJson()}');
-        event.service!.resolve(
-          _bonsoirClient.serviceResolver,
-        ); // Should be called when the user wants to connect to this service.
-      } else if (event.type ==
-          BonsoirDiscoveryEventType.discoveryServiceResolved) {
-        final jsonService = event.service!.toJson();
-        log('Service resolved : $jsonService');
-        log(
-          "${jsonService.toString()} ${jsonService["service.name"]} ${jsonService["service.host"]}",
-        );
-        setState(() {
-          _hostnames[jsonService["service.name"]] = jsonService["service.host"];
-        });
-      } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceLost) {
-        final jsonService = event.service!.toJson();
-        log('Service lost : $jsonService');
-        setState(() {
-          _hostnames.remove(jsonService["service.name"]);
-        });
+      switch (event) {
+        case BonsoirDiscoveryServiceFoundEvent():
+          log('Service found : ${event.service.toJson()}');
+          event.service.resolve(
+            _bonsoirClient.serviceResolver,
+          ); // Should be called when the user wants to connect to this service.
+        case BonsoirDiscoveryServiceResolvedEvent():
+          final jsonService = event.service.toJson();
+          log('Service resolved : $jsonService');
+          log(
+            "${jsonService.toString()} ${jsonService["service.name"]} ${jsonService["service.host"]}",
+          );
+          setState(() {
+            _hostnames[jsonService['service.name']] =
+                jsonService['service.host'];
+          });
+          break;
+        case BonsoirDiscoveryServiceLostEvent():
+          final jsonService = event.service.toJson();
+          log('Service lost : $jsonService');
+          setState(() {
+            _hostnames.remove(jsonService['service.name']);
+          });
+        case BonsoirDiscoveryServiceUpdatedEvent():
+          final jsonService = event.service.toJson();
+          log('Service Updated : $jsonService');
+          setState(() {
+            _hostnames[jsonService['service.name']] =
+                jsonService['service.host'];
+          });
+        case BonsoirDiscoveryServiceResolveFailedEvent():
+        case BonsoirDiscoveryStoppedEvent():
+        case BonsoirDiscoveryStartedEvent():
+        case BonsoirDiscoveryUnknownEvent():
+          break;
       }
     });
 
@@ -92,10 +106,8 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
   }
 
   void checkAddress() async {
-    log("current ip field: ${_ipController.text}");
     try {
       final isValidAsIp = InternetAddress.tryParse(_ipController.text) != null;
-      log("is she valid? $isValidAsIp");
       if (isValidAsIp) {
         setState(() {
           isValidHost = true;
@@ -160,7 +172,7 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: Text(
-              "Tap below to autofill IP",
+              'Tap below to autofill IP',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
@@ -184,7 +196,7 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text("Cancel"),
+          child: const Text('Cancel'),
         ),
         TextButton(
           onPressed: isAllValid
@@ -194,7 +206,7 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
                   ).pop((resolvedHost, int.parse(_portController.text)));
                 }
               : null,
-          child: const Text("Save"),
+          child: const Text('Save'),
         ),
       ],
     );

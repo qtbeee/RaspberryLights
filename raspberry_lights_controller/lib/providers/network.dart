@@ -6,12 +6,12 @@ part 'network.g.dart';
 
 @riverpod
 class Host extends _$Host {
-  static const hostIpKey = "hostIP";
-  static const hostPortKey = "hostPort";
+  static const hostIpKey = 'hostIP';
+  static const hostPortKey = 'hostPort';
 
   @override
   (String, int)? build() {
-    final preferences = ref.watch(sharedPreferencesProvider).valueOrNull;
+    final preferences = ref.watch(sharedPreferencesProvider).value;
 
     final ip = preferences?.getString(hostIpKey);
     final port = preferences?.getInt(hostPortKey);
