@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/models/pattern_configuration.dart';
 import 'package:raspberry_lights_controller/providers/network.dart';
-import 'package:raspberry_lights_controller/utils/no_base_url_exception.dart';
+import 'package:raspberry_lights_controller/utils/exception.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'current_pattern.g.dart';
@@ -14,6 +14,5 @@ Future<PatternConfiguration> currentPattern(Ref ref) async {
   }
 
   var response = await client.get("pattern");
-  print(response);
   return PatternConfiguration.fromJson(response.data);
 }

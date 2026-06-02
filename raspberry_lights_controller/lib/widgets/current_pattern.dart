@@ -1,17 +1,44 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:raspberry_lights_controller/models/pattern_configuration.dart';
+import 'package:raspberry_lights_controller/models/pattern_setting.dart';
 import 'package:raspberry_lights_controller/providers/current_pattern.dart';
 import 'package:raspberry_lights_controller/providers/pattern_list.dart';
+import 'package:raspberry_lights_controller/screens/colors_editor.dart';
+import 'package:raspberry_lights_controller/screens/pattern_settings_editor.dart';
+import 'package:raspberry_lights_controller/service/pattern.dart';
 import 'package:raspberry_lights_controller/widgets/color_square.dart';
-import 'package:recase/recase.dart';
 
-class CurrentPattern extends ConsumerWidget {
+class CurrentPattern extends ConsumerStatefulWidget {
   const CurrentPattern({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final patternConfiguration = ref.watch(currentPatternProvider).requireValue;
+  ConsumerState<CurrentPattern> createState() => _CurrentPatternState();
+}
+
+class _CurrentPatternState extends ConsumerState<CurrentPattern> {
+  late PatternConfiguration patternConfiguration;
+  late List<Color> holdoverColors;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentPatternConfig = ref.read(currentPatternProvider).requireValue;
+    patternConfiguration = currentPatternConfig;
+    holdoverColors = currentPatternConfig.colors ?? [Color(0xFF942cff)];
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final patternList = ref.watch(patternListProvider).requireValue;
+    final selectedPattern = patternList.firstWhere(
+      (p) => p.patternId == patternConfiguration.patternId,
+    );
+    final currentPattern = ref.watch(currentPatternProvider).requireValue;
+
+    final hasChanges = patternConfiguration != currentPattern;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -23,8 +50,32 @@ class CurrentPattern extends ConsumerWidget {
               children: [
                 Text("Pattern", style: TextStyle(fontWeight: FontWeight.bold)),
                 Spacer(),
-                Text(patternConfiguration.name.titleCase),
-                IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                Text(selectedPattern.name),
+                PopupMenuButton(
+                  position: PopupMenuPosition.under,
+                  onSelected: onChangeSelectedPattern,
+                  icon: Icon(Icons.edit),
+                  itemBuilder: (context) {
+                    return patternList.map((p) {
+                      final (patternId, name, desc) = (
+                        p.patternId,
+                        p.name,
+                        p.description,
+                      );
+                      return PopupMenuItem(
+                        value: patternId,
+                        child: Row(
+                          children: [
+                            Text(name),
+                            Spacer(),
+                            if (patternId == patternConfiguration.patternId)
+                              Icon(Icons.check),
+                          ],
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
               ],
             ),
           ),
@@ -43,7 +94,28 @@ class CurrentPattern extends ConsumerWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                  IconButton(
+                    onPressed: () async {
+                      final newSettings = await openPatternSettingsEditor(
+                        context,
+                        brightness: patternConfiguration.brightness,
+                        animationSpeed: patternConfiguration.animationSpeed,
+                        additionalSettings:
+                            patternConfiguration.additionalSettings,
+                        patternInfo: selectedPattern,
+                      );
+                      if (newSettings != null) {
+                        setState(() {
+                          patternConfiguration = patternConfiguration.copyWith(
+                            brightness: newSettings.brightness,
+                            animationSpeed: newSettings.animationSpeed,
+                            additionalSettings: newSettings.additionalSettings,
+                          );
+                        });
+                      }
+                    },
+                    icon: Icon(Icons.edit),
+                  ),
                 ],
               ),
               BrightnessEntry(brightness: patternConfiguration.brightness),
@@ -55,7 +127,8 @@ class CurrentPattern extends ConsumerWidget {
                 AdditionalSettingEntry(
                   name: setting.name,
                   value: setting.value,
-                  isPercent: setting.isPercent ?? false,
+                  patternSettingInfo: selectedPattern.additionalSettings
+                      .firstWhere((s) => s.name == setting.name),
                 ),
               SizedBox(height: 16),
             ],
@@ -76,7 +149,22 @@ class CurrentPattern extends ConsumerWidget {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                    IconButton(
+                      onPressed: () async {
+                        final colors = await openColorsEditor(
+                          context,
+                          patternConfiguration.colors!,
+                        );
+                        if (colors != null) {
+                          setState(() {
+                            patternConfiguration = patternConfiguration
+                                .copyWith(colors: colors);
+                            holdoverColors = [...colors];
+                          });
+                        }
+                      },
+                      icon: Icon(Icons.edit),
+                    ),
                   ],
                 ),
                 SizedBox(height: 8),
@@ -88,15 +176,7 @@ class CurrentPattern extends ConsumerWidget {
                     spacing: 8,
                     children: [
                       ...patternConfiguration.colors!.map(
-                        (color) => ColorSquare(
-                          onTap: null,
-                          color: Color.fromARGB(
-                            255,
-                            color.red,
-                            color.green,
-                            color.blue,
-                          ),
-                        ),
+                        (color) => ColorSquare(onTap: null, color: color),
                       ),
                     ],
                   ),
@@ -105,8 +185,71 @@ class CurrentPattern extends ConsumerWidget {
               ],
             ),
           ),
+        Spacer(),
+        SafeArea(
+          bottom: true,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16),
+            child: AnimatedSlide(
+              duration: Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              offset: hasChanges
+                  ? Offset.zero
+                  : Offset.fromDirection(pi * 0.5, 2),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: hasChanges
+                          ? () => setLightPattern(ref, patternConfiguration)
+                          : null,
+                      label: Text("Save Changes"),
+                      icon: Icon(Icons.check),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: hasChanges
+                          ? () => setState(() {
+                              patternConfiguration = currentPattern;
+                            })
+                          : null,
+                      icon: Icon(Icons.undo),
+                      label: Text("Clear Changes"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  void onChangeSelectedPattern(String newPatternId) {
+    final newSelectedPattern = ref
+        .read(patternListProvider)
+        .requireValue
+        .firstWhere((p) => p.patternId == newPatternId);
+    PatternConfiguration newConfiguration = PatternConfiguration.colorBased(
+      patternId: newPatternId,
+      animationSpeed: newSelectedPattern.animationSpeeds > 1 ? 0 : null,
+      brightness: 100,
+      colors: newSelectedPattern.canChooseColor
+          ? patternConfiguration.colors ?? holdoverColors
+          : null,
+      additionalSettings: newSelectedPattern.additionalSettings
+          .map(
+            (s) => PatternConfigurationSetting(name: s.name, value: s.min ?? 0),
+          )
+          .toList(),
+    );
+
+    setState(() {
+      patternConfiguration = newConfiguration;
+    });
   }
 }
 
@@ -172,19 +315,25 @@ class AnimationSpeedEntry extends StatelessWidget {
 
 class AdditionalSettingEntry extends StatelessWidget {
   final String name;
-  final dynamic value;
-  final bool isPercent;
+  final int value;
+  final PatternSetting patternSettingInfo;
 
   const AdditionalSettingEntry({
     super.key,
     required this.name,
     required this.value,
-    required this.isPercent,
+    required this.patternSettingInfo,
   });
 
   @override
   Widget build(BuildContext context) {
-    final valueText = isPercent ? "$value%" : value.toString();
+    final String valueText;
+
+    if (patternSettingInfo.settingType == "Number") {
+      valueText = patternSettingInfo.isPercent ? "$value%" : value.toString();
+    } else {
+      valueText = patternSettingInfo.options![value];
+    }
 
     return SummaryEntry(title: name, value: valueText);
   }

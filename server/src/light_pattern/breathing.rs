@@ -1,15 +1,14 @@
 use std::num::NonZeroUsize;
 
 use rand::{Rng, thread_rng};
-use serde_json::{Map, Value};
 
-use crate::model::{PatternConfiguration, PatternInfo};
+use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo};
 
-use super::{Color, ColorPattern, Information, LightPattern};
+use super::{Color, ColorPattern, LightPattern};
 
 pub struct Breathing {
     led_count: NonZeroUsize,
-    brightness: u8,
+    global_brightness: u8,
     pos: u16,
     colors: Vec<Color>,
     current_color: usize,
@@ -39,7 +38,9 @@ impl Breathing {
 impl LightPattern for Breathing {
     fn get_frame(&self) -> Vec<Color> {
         let x = (self.pos as f32).to_radians();
-        let color = self.colors[self.current_color].at_brightness(x.sin());
+        let color = self.colors[self.current_color]
+            .at_brightness_percent(self.global_brightness)
+            .at_brightness(x.sin());
 
         vec![color; usize::from(self.led_count)]
     }
@@ -55,38 +56,11 @@ impl LightPattern for Breathing {
     fn get_sleep_millis(&self) -> u64 {
         self.sleep_millis
     }
-}
 
-impl ColorPattern for Breathing {
-    fn new(
-        leds: NonZeroUsize,
-        speed: usize,
-        brightness: u8,
-        colors: &[Color],
-        _options: Map<String, Value>,
-    ) -> Self {
-        Self {
-            led_count: leds,
-            brightness,
-            pos: 0,
-            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
-            colors: colors
-                .iter()
-                .map(|c| c.at_brightness_percent(brightness))
-                .collect(),
-            current_color: if colors.len() == 1 {
-                0
-            } else {
-                thread_rng().gen_range(0..colors.len())
-            },
-        }
-    }
-}
-
-impl Information for Breathing {
     fn get_info() -> PatternInfo {
         PatternInfo {
-            pattern: crate::model::PatternName::Breathing,
+            pattern_id: crate::model::PatternName::Breathing,
+            name: "Breathing",
             description: &"All lights fade in and out with the chosen color. If more than one color is provided, a single color is chosen for all leds every cycle.",
             can_choose_color: true,
             animation_speeds: Self::SPEEDS.len(),
@@ -96,13 +70,36 @@ impl Information for Breathing {
 
     fn get_current_settings(&self) -> crate::model::PatternConfiguration {
         PatternConfiguration {
-            name: crate::model::PatternName::Breathing,
+            pattern_id: crate::model::PatternName::Breathing,
             animation_speed: Self::SPEEDS
                 .iter()
                 .position(|&s| s == self.sleep_millis as usize),
-            brightness: self.brightness,
+            brightness: self.global_brightness,
             colors: Option::Some(self.colors.clone()),
             additional_settings: vec![],
+        }
+    }
+}
+
+impl ColorPattern for Breathing {
+    fn new(
+        leds: NonZeroUsize,
+        speed: usize,
+        brightness: u8,
+        colors: &[Color],
+        _options: Vec<ConfigurationSetting>,
+    ) -> Self {
+        Self {
+            led_count: leds,
+            global_brightness: brightness,
+            pos: 0,
+            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
+            colors: colors.into(),
+            current_color: if colors.len() == 1 {
+                0
+            } else {
+                thread_rng().gen_range(0..colors.len())
+            },
         }
     }
 }

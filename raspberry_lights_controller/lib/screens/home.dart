@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/providers/current_pattern.dart';
 import 'package:raspberry_lights_controller/providers/pattern_list.dart';
-import 'package:raspberry_lights_controller/screens/settings.dart';
-import 'package:raspberry_lights_controller/utils/no_base_url_exception.dart';
+import 'package:raspberry_lights_controller/screens/app_settings.dart';
+import 'package:raspberry_lights_controller/utils/exception.dart';
 import 'package:raspberry_lights_controller/widgets/current_pattern.dart';
 import 'package:raspberry_lights_controller/widgets/loading.dart';
 import 'package:raspberry_lights_controller/widgets/update_host_url_dialog.dart';
@@ -33,7 +33,7 @@ class Home extends ConsumerWidget {
             onPressed: () {
               Navigator.of(
                 context,
-              ).push(MaterialPageRoute(builder: (context) => Settings()));
+              ).push(MaterialPageRoute(builder: (context) => AppSettings()));
             },
             icon: const Icon(Icons.settings),
           ),

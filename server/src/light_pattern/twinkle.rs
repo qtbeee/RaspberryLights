@@ -1,11 +1,10 @@
 use std::num::NonZeroUsize;
 
 use rand::{Rng, thread_rng};
-use serde_json::{Map, Value};
 
-use crate::model::{PatternConfiguration, PatternInfo, PatternSetting};
+use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSetting};
 
-use super::{Color, ColorPattern, Information, LightPattern};
+use super::{Color, ColorPattern, LightPattern};
 
 pub struct Twinkle {
     brightness: u8,
@@ -43,6 +42,29 @@ impl LightPattern for Twinkle {
     fn get_sleep_millis(&self) -> u64 {
         self.sleep_millis
     }
+
+    fn get_info() -> PatternInfo {
+        let additional_settings: Vec<PatternSetting> = vec![];
+
+        PatternInfo {
+            pattern_id: crate::model::PatternName::Twinkle,
+            name: "Twinkle",
+            description: &"Leds vary in brightness independently to simulate a twinkling effect. If more than one color is specified, colors are spread evenly across.",
+            can_choose_color: true,
+            animation_speeds: Self::SPEEDS.len(),
+            additional_settings,
+        }
+    }
+
+    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
+        PatternConfiguration {
+            pattern_id: crate::model::PatternName::Twinkle,
+            animation_speed: Self::SPEEDS.iter().position(|&s| s == self.sleep_millis),
+            brightness: self.brightness,
+            colors: Option::Some(self.colors.clone()),
+            additional_settings: vec![],
+        }
+    }
 }
 
 impl ColorPattern for Twinkle {
@@ -51,7 +73,7 @@ impl ColorPattern for Twinkle {
         speed: usize,
         brightness: u8,
         colors: &[Color],
-        _options: Map<String, Value>,
+        _options: Vec<ConfigurationSetting>,
     ) -> Self {
         Self {
             brightness,
@@ -66,30 +88,6 @@ impl ColorPattern for Twinkle {
                 .take(usize::from(leds))
                 .collect(),
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())],
-        }
-    }
-}
-
-impl Information for Twinkle {
-    fn get_info() -> PatternInfo {
-        let additional_settings: Vec<PatternSetting> = vec![];
-
-        PatternInfo {
-            pattern: crate::model::PatternName::Twinkle,
-            description: &"Leds vary in brightness independently to simulate a twinkling effect. If more than one color is specified, colors are spread evenly across.",
-            can_choose_color: true,
-            animation_speeds: Self::SPEEDS.len(),
-            additional_settings,
-        }
-    }
-
-    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
-        PatternConfiguration {
-            name: crate::model::PatternName::Twinkle,
-            animation_speed: Self::SPEEDS.iter().position(|&s| s == self.sleep_millis),
-            brightness: self.brightness,
-            colors: Option::Some(self.colors.clone()),
-            additional_settings: vec![],
         }
     }
 }

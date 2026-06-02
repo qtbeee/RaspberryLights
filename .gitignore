@@ -78,3 +78,7 @@ raspberry_lights_controller/build/
 
 # Added by cargo
 server/target
+
+# the real versions of the tools should not be included
+tools/sync.fish
+tools/lights.service

@@ -1,37 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:raspberry_lights_controller/providers/pattern.dart';
 import 'package:raspberry_lights_controller/providers/saved_color.dart';
 import 'package:raspberry_lights_controller/widgets/hsv_color_slider.dart';
 import 'package:raspberry_lights_controller/widgets/color_tile.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
 import 'package:raspberry_lights_controller/widgets/palette_list.dart';
 
-void openColorPicker(BuildContext context, WidgetRef ref, {int? index}) async {
-  var color = await Navigator.of(context).push<Color>(
+Future<Color?> openColorPicker(BuildContext context, Color initialColor) async {
+  return Navigator.of(context).push<Color>(
     MaterialPageRoute(
-      builder: (context) => ColorPickerPage(
-        color: index != null
-            ? ref.read(patternColorsProvider)[index]
-            : Colors.white,
-      ),
+      builder: (context) => ColorPickerPage(initialColor: initialColor),
     ),
   );
-  if (color != null) {
-    if (index == null) {
-      ref.read(patternColorsProvider.notifier).addColor(color: color);
-    } else {
-      ref
-          .read(patternColorsProvider.notifier)
-          .setColor(color: color, index: index);
-    }
-  }
 }
 
 class ColorPickerPage extends StatefulWidget {
-  const ColorPickerPage({super.key, required this.color});
+  const ColorPickerPage({super.key, required this.initialColor});
 
-  final Color color;
+  final Color initialColor;
 
   @override
   State<ColorPickerPage> createState() => _ColorPickerPageState();
@@ -39,28 +25,27 @@ class ColorPickerPage extends StatefulWidget {
 
 class _ColorPickerPageState extends State<ColorPickerPage>
     with TickerProviderStateMixin {
-  late HSVColor color = HSVColor.fromColor(widget.color);
+  late HSVColor color = HSVColor.fromColor(widget.initialColor);
   Color get rgbColor => color.toColor();
-  late final TabController _controller = TabController(length: 2, vsync: this);
+
+  final _tabs = const [Tab(text: "Custom"), Tab(text: "From Palette")];
+  late final TabController _controller = TabController(
+    length: _tabs.length,
+    vsync: this,
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text("Choose a Color"),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: const Icon(Icons.close),
+          icon: Icon(Icons.close),
         ),
-        title: const Text("Choose a Color"),
-        bottom: TabBar(
-          tabs: const [
-            Tab(text: "Custom"),
-            Tab(text: "From Palette"),
-          ],
-          controller: _controller,
-        ),
+        bottom: TabBar(tabs: _tabs, controller: _controller),
         actions: [
           IconButton(
             onPressed: () {

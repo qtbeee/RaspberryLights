@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/providers/network.dart';
 import 'package:raspberry_lights_controller/widgets/update_host_url_dialog.dart';
 
-class Settings extends ConsumerWidget {
-  const Settings({super.key});
+class AppSettings extends ConsumerWidget {
+  const AppSettings({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,11 +1,10 @@
 use std::num::NonZeroUsize;
 
 use rand::{Rng, distributions::Uniform, thread_rng};
-use serde_json::{Map, Value};
 
-use crate::model::{PatternConfiguration, PatternInfo};
+use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo};
 
-use super::{Color, ColorlessPattern, Information, LightPattern};
+use super::{Color, ColorlessPattern, LightPattern};
 
 static CRITMAS_COLORS: [Color; 5] = [
     // pink, orange, blue, red, green
@@ -39,7 +38,7 @@ pub struct Critmas {
     pos: u16,
     current_colors: Vec<u8>,
     sleep_millis: u64,
-    brightness: u8,
+    global_brightness: u8,
 }
 
 impl Critmas {
@@ -59,8 +58,8 @@ impl LightPattern for Critmas {
             .map(|c| {
                 let x = (self.pos as f32).to_radians();
                 CRITMAS_COLORS[*c as usize]
+                    .at_brightness_percent(self.global_brightness)
                     .at_brightness(x.sin())
-                    .at_brightness_percent(self.brightness)
             })
             .collect()
     }
@@ -76,28 +75,11 @@ impl LightPattern for Critmas {
     fn get_sleep_millis(&self) -> u64 {
         self.sleep_millis
     }
-}
 
-impl ColorlessPattern for Critmas {
-    fn new(leds: NonZeroUsize, speed: usize, brightness: u8, _options: Map<String, Value>) -> Self {
-        let range = Uniform::new(0, CRITMAS_COLORS.len() as u8);
-
-        Self {
-            pos: 0,
-            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
-            current_colors: thread_rng()
-                .sample_iter(range)
-                .take(usize::from(leds))
-                .collect(),
-            brightness,
-        }
-    }
-}
-
-impl Information for Critmas {
     fn get_info() -> PatternInfo {
         PatternInfo {
-            pattern: crate::model::PatternName::Critmas,
+            pattern_id: crate::model::PatternName::Critmas,
+            name: "Critmas",
             description: &"Similar to `Breathing` pattern, but the colors are fixed, and randomized per bulb.",
             can_choose_color: false,
             animation_speeds: Self::SPEEDS.len(),
@@ -107,13 +89,34 @@ impl Information for Critmas {
 
     fn get_current_settings(&self) -> crate::model::PatternConfiguration {
         PatternConfiguration {
-            name: crate::model::PatternName::Critmas,
+            pattern_id: crate::model::PatternName::Critmas,
             animation_speed: Self::SPEEDS
                 .iter()
                 .position(|&s| s == self.sleep_millis as usize),
-            brightness: self.brightness,
+            brightness: self.global_brightness,
             colors: Option::None,
             additional_settings: vec![],
+        }
+    }
+}
+
+impl ColorlessPattern for Critmas {
+    fn new(
+        leds: NonZeroUsize,
+        speed: usize,
+        brightness: u8,
+        _options: Vec<ConfigurationSetting>,
+    ) -> Self {
+        let range = Uniform::new(0, CRITMAS_COLORS.len() as u8);
+
+        Self {
+            pos: 0,
+            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
+            current_colors: thread_rng()
+                .sample_iter(range)
+                .take(usize::from(leds))
+                .collect(),
+            global_brightness: brightness,
         }
     }
 }

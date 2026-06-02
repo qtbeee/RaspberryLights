@@ -1,16 +1,15 @@
-use std::{fmt::Display, num::NonZeroUsize};
+use std::num::NonZeroUsize;
 
 use rand::{Rng, distributions::Uniform, thread_rng};
-use serde_json::{Map, Value};
 
 use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSetting};
 
-use super::{Color, ColorPattern, Information, LightPattern};
+use super::{Color, ColorPattern, LightPattern};
 
 #[derive(Debug)]
 pub struct BreathingConfigurable {
     led_count: NonZeroUsize,
-    brightness: u8,
+    global_brightness: u8,
     current_position: u16,
     colors: Vec<Color>,
     current_colors: Vec<u8>,
@@ -18,19 +17,40 @@ pub struct BreathingConfigurable {
     step_size: u16,
 }
 
+enum AdditionalSetting {
+    ColorAssignment,
+    MinRelBrightness,
+}
+
+const SETTINGS_STRS: [&str; 2] = ["Color Assignment", "Minimum Relative Brightness"];
+
 #[derive(Default, Debug)]
 pub struct BreathingOptions {
     color_choice: ColorChoice,
     min_relative_brightness: usize,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy)]
 pub enum ColorChoice {
     #[default]
     SyncOnCycle,
     RandomizeOnCycle,
     BalancedOnce,
     RandomizedOnce,
+}
+
+impl TryFrom<usize> for ColorChoice {
+    type Error = &'static str;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(ColorChoice::SyncOnCycle),
+            1 => Ok(ColorChoice::RandomizeOnCycle),
+            2 => Ok(ColorChoice::BalancedOnce),
+            3 => Ok(ColorChoice::RandomizedOnce),
+            _ => Err("Out of bounds value"),
+        }
+    }
 }
 
 const COLOR_CHOICE_STRS: [&str; 4] = [
@@ -40,27 +60,30 @@ const COLOR_CHOICE_STRS: [&str; 4] = [
     "Randomize Once",
 ];
 
-impl Display for ColorChoice {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ColorChoice::SyncOnCycle => f.write_str(COLOR_CHOICE_STRS[0]),
-            ColorChoice::RandomizeOnCycle => f.write_str(COLOR_CHOICE_STRS[1]),
-            ColorChoice::BalancedOnce => f.write_str(COLOR_CHOICE_STRS[2]),
-            ColorChoice::RandomizedOnce => f.write_str(COLOR_CHOICE_STRS[3]),
-        }
-    }
-}
-
 impl BreathingConfigurable {
     /* How many steps to advance `pos` by each frame */
     pub const SPEEDS: [u16; 6] = [1, 2, 3, 4, 5, 6];
     const FRAME_COUNT: u16 = 720;
 
-    // TODO: implement options coming from the user
-    fn parse_options(options: Map<String, Value>) -> BreathingOptions {
+    fn parse_options(options: Vec<ConfigurationSetting>) -> BreathingOptions {
         println!("options raw: {:?}", options);
+        let mut color_choice = Default::default();
+        let mut min_relative_brightness = Default::default();
 
-        BreathingOptions::default()
+        options.iter().for_each(|o| match &o.name {
+            v if v == SETTINGS_STRS[AdditionalSetting::ColorAssignment as usize] => {
+                color_choice = ColorChoice::try_from(o.value).unwrap_or_default();
+            }
+            v if v == SETTINGS_STRS[AdditionalSetting::MinRelBrightness as usize] => {
+                min_relative_brightness = o.value.clamp(0, 95);
+            }
+            _ => {}
+        });
+
+        BreathingOptions {
+            color_choice,
+            min_relative_brightness,
+        }
     }
 
     fn reset_colors(&mut self) {
@@ -128,6 +151,7 @@ impl LightPattern for BreathingConfigurable {
                 self.colors
                     .get((*color_index) as usize)
                     .unwrap()
+                    .at_brightness_percent(self.global_brightness)
                     .at_brightness(brightness)
             })
             .collect()
@@ -148,54 +172,28 @@ impl LightPattern for BreathingConfigurable {
     fn get_sleep_millis(&self) -> u64 {
         17 // Vaguely 60fps?
     }
-}
 
-impl ColorPattern for BreathingConfigurable {
-    fn new(
-        leds: NonZeroUsize,
-        speed: usize,
-        brightness: u8,
-        colors: &[Color],
-        options: Map<String, Value>,
-    ) -> Self {
-        let mut pattern = Self {
-            led_count: leds,
-            brightness,
-            current_position: 100,
-            colors: colors
-                .iter()
-                .map(|c| c.at_brightness_percent(brightness))
-                .collect(),
-            current_colors: Vec::new(),
-            options: Self::parse_options(options),
-            step_size: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())],
-        };
-        pattern.reset_colors(); // Set initial colors here
-
-        pattern
-    }
-}
-
-impl Information for BreathingConfigurable {
     fn get_info() -> PatternInfo {
         let additional_settings = vec![
             PatternSetting::MultipleChoice {
-                name: "Color Assignment",
+                name: SETTINGS_STRS[AdditionalSetting::ColorAssignment as usize],
                 description: Some("Choose how the leds are assigned color."),
                 options: COLOR_CHOICE_STRS.into(),
             },
             PatternSetting::Number {
-                name: "Minimum Relative Brightness",
+                name: SETTINGS_STRS[AdditionalSetting::MinRelBrightness as usize],
                 description: Some(
                     "Choose how dark leds get every cycle relative to the overall brightness setting, as a percentage.",
                 ),
                 min: 0,
                 max: 95,
+                is_percent: true,
             },
         ];
 
         PatternInfo {
-            pattern: crate::model::PatternName::BreathingConfigurable,
+            pattern_id: crate::model::PatternName::BreathingConfigurable,
+            name: "Configurable Breathing",
             description: "Pattern where each leds varies in brightness. Cycle behavior can be customized.",
             can_choose_color: true,
             animation_speeds: Self::SPEEDS.len(),
@@ -205,21 +203,43 @@ impl Information for BreathingConfigurable {
 
     fn get_current_settings(&self) -> crate::model::PatternConfiguration {
         PatternConfiguration {
-            name: crate::model::PatternName::BreathingConfigurable,
+            pattern_id: crate::model::PatternName::BreathingConfigurable,
             animation_speed: Self::SPEEDS.iter().position(|&s| s == self.step_size),
-            brightness: self.brightness,
+            brightness: self.global_brightness,
             colors: Option::Some(self.colors.clone()),
             additional_settings: vec![
-                ConfigurationSetting::MultipleChoice {
-                    name: "Color Assignment",
-                    value: format!("{}", self.options.color_choice),
+                ConfigurationSetting {
+                    name: SETTINGS_STRS[AdditionalSetting::ColorAssignment as usize].into(),
+                    value: self.options.color_choice as usize,
                 },
-                ConfigurationSetting::Number {
-                    name: "Minimum Relative Brightness",
+                ConfigurationSetting {
+                    name: SETTINGS_STRS[AdditionalSetting::MinRelBrightness as usize].into(),
                     value: self.options.min_relative_brightness,
-                    is_percent: true,
                 },
             ],
         }
+    }
+}
+
+impl ColorPattern for BreathingConfigurable {
+    fn new(
+        leds: NonZeroUsize,
+        speed: usize,
+        brightness: u8,
+        colors: &[Color],
+        options: Vec<ConfigurationSetting>,
+    ) -> Self {
+        let mut pattern = Self {
+            led_count: leds,
+            global_brightness: brightness,
+            current_position: 100,
+            colors: colors.into(),
+            current_colors: Vec::new(),
+            options: Self::parse_options(options),
+            step_size: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())],
+        };
+        pattern.reset_colors(); // Set initial colors here
+
+        pattern
     }
 }

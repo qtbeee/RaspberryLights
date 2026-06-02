@@ -5,14 +5,16 @@ part 'pattern_info.g.dart';
 
 @JsonSerializable()
 class PatternInfo {
-  final String pattern;
+  final String patternId;
+  final String name;
   final String description;
   final bool canChooseColor;
   final int animationSpeeds;
   final List<PatternSetting> additionalSettings;
 
   PatternInfo({
-    required this.pattern,
+    required this.patternId,
+    required this.name,
     required this.description,
     required this.canChooseColor,
     required this.animationSpeeds,
@@ -29,15 +31,16 @@ class PatternInfo {
       identical(this, other) ||
       other is PatternInfo &&
           runtimeType == other.runtimeType &&
-          pattern == other.pattern;
+          patternId == other.patternId;
 
   @override
-  int get hashCode => pattern.hashCode;
+  int get hashCode => patternId.hashCode;
 
   @override
   String toString() {
     return """{
-      name: $pattern,
+      patternId: $patternId,
+      name: $name,
       description: $description,
       canChooseColor: $canChooseColor,
       animationSpeeds: $animationSpeeds,

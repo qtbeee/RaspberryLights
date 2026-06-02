@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/models/pattern_info.dart';
 import 'package:raspberry_lights_controller/providers/network.dart';
-import 'package:raspberry_lights_controller/utils/no_base_url_exception.dart';
+import 'package:raspberry_lights_controller/utils/exception.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'pattern_list.g.dart';

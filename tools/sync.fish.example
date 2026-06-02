@@ -1,0 +1,10 @@
+#! /usr/bin/env fish
+# This script is to be run from the /server directory
+
+set -l target arm-unknown-linux-gnueabihf
+set -l host rpi_hostname # <- change this to the hostname of your pi
+set -l target_path /path/to/executable # <- change this to the desired location on your pi
+
+cross build --target $target --release && \
+rsync target/$target/release/raspberry_lights $host:$target_path && \
+ssh -t $host -o RemoteCommand="systemctl restart lights.service"

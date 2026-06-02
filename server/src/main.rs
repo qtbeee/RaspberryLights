@@ -4,9 +4,8 @@ mod pattern;
 
 use axum::{Extension, Router, routing::get};
 use light_pattern::LightPattern;
-use serde_json::Map;
 
-use std::{num::NonZeroUsize, str::FromStr, sync::Arc, time::Duration};
+use std::{num::NonZeroUsize, str::FromStr, sync::Arc, sync::Mutex, time::Duration};
 use tokio::{sync::mpsc::error::TryRecvError, time::sleep};
 use tower_http::trace::TraceLayer;
 use ws2818_rgb_led_spi_driver::{
@@ -17,7 +16,7 @@ use ws2818_rgb_led_spi_driver::{
 };
 
 use crate::{
-    light_pattern::{BreathingConfigurable, Color, ColorPattern, Information, Twinkle},
+    light_pattern::{BreathingConfigurable, Color, ColorPattern},
     pattern::{ServerState, get_current_pattern, get_patterns, set_pattern},
 };
 
@@ -36,7 +35,7 @@ async fn main() {
         0,
         100,
         &[Color::from_str("#00af00").unwrap()],
-        Map::new(),
+        vec![],
     ));
 
     let (send, rcv) = tokio::sync::mpsc::channel(1);
@@ -44,7 +43,7 @@ async fn main() {
     let server_state = Arc::new(ServerState {
         sender: send,
         leds_in_use: leds_in_use,
-        current_pattern_settings: initial_pattern.get_current_settings(),
+        current_pattern_settings: Mutex::new(initial_pattern.get_current_settings()),
     });
 
     let app = Router::new()

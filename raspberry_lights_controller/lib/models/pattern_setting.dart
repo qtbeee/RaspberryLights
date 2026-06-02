@@ -9,6 +9,7 @@ class PatternSetting {
 
   final int? min;
   final int? max;
+  final bool isPercent;
   final List<String>? options;
 
   PatternSetting({
@@ -16,6 +17,7 @@ class PatternSetting {
     required this.description,
     this.min,
     this.max,
+    this.isPercent = false,
     this.options,
   });
 
@@ -29,15 +31,12 @@ class PatternSetting {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PatternSetting &&
-          runtimeType == other.runtimeType &&
-          name == other.name;
+      identical(this, other) || (other is PatternSetting && name == other.name);
 
   @override
   int get hashCode => name.hashCode;
 
   @override
   String toString() =>
-      "{ name: $name, description: $description, type: $settingType }";
+      "{ name: $name, description: $description, isPercent: $isPercent, type: $settingType }";
 }

@@ -2,34 +2,47 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:raspberry_lights_controller/models/pattern_configuration.dart';
+import 'package:raspberry_lights_controller/providers/current_pattern.dart';
 import 'package:raspberry_lights_controller/providers/network.dart';
-import 'package:raspberry_lights_controller/providers/pattern.dart';
+import 'package:raspberry_lights_controller/providers/pattern_list.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
 
-void setLightPattern(WidgetRef ref) {
-  final selectedPattern = ref.read(selectedPatternProvider);
-  final selectedColors = ref.read(patternColorsProvider);
-  final brightness = ref.read(patternBrightnessProvider);
+void setLightPattern(
+  WidgetRef ref,
+  PatternConfiguration patternConfiguration,
+) async {
   final client = ref.read(networkClientProvider);
+  final patternList = ref.read(patternListProvider).requireValue;
+  final selectedPattern = patternList.firstWhere(
+    (p) => p.patternId == patternConfiguration.patternId,
+  );
 
-  if (selectedPattern == null) {
-    return;
-  }
   final data = {
-    "pattern": selectedPattern.pattern,
+    "patternId": patternConfiguration.patternId,
     "colors": selectedPattern.canChooseColor
-        ? selectedColors.map((c) => c.toHexString()).toList()
+        ? patternConfiguration.colors?.map((c) => c.toHexString()).toList()
         : null,
     "animationSpeed": selectedPattern.animationSpeeds > 1
-        ? ref.read(animationSpeedProvider) - 1
+        ? patternConfiguration.animationSpeed
         : null,
-    "brightness": brightness,
-    "additionalSettings": null, // TODO
+    "brightness": patternConfiguration.brightness,
+    "additionalSettings": selectedPattern.additionalSettings.isNotEmpty
+        ? patternConfiguration.additionalSettings
+              .map(
+                (setting) => PatternConfigurationSetting(
+                  name: setting.name,
+                  value: setting.value,
+                ),
+              )
+              .toList()
+        : [],
   };
 
-  client.post(
+  await client.post(
     "pattern",
     data: data,
     options: Options(contentType: ContentType.json.toString()),
   );
+  ref.invalidate(currentPatternProvider);
 }

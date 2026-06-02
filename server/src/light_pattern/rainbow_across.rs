@@ -1,16 +1,14 @@
 use std::num::NonZeroUsize;
 
-use serde_json::{Map, Value};
+use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo};
 
-use crate::model::{PatternConfiguration, PatternInfo};
-
-use super::{Color, ColorlessPattern, Information, LightPattern};
+use super::{Color, ColorlessPattern, LightPattern};
 
 pub struct RainbowAcross {
     pos: u8,
     led_count: NonZeroUsize,
     sleep_millis: u64,
-    brightness: u8,
+    global_brightness: u8,
 }
 
 impl RainbowAcross {
@@ -26,7 +24,7 @@ impl LightPattern for RainbowAcross {
                 let n = n % usize::from(u8::MAX);
 
                 Color::wheel(self.pos.overflowing_add(n as u8).0)
-                    .at_brightness_percent(self.brightness)
+                    .at_brightness_percent(self.global_brightness)
             })
             .collect()
     }
@@ -38,23 +36,11 @@ impl LightPattern for RainbowAcross {
     fn get_sleep_millis(&self) -> u64 {
         self.sleep_millis
     }
-}
 
-impl ColorlessPattern for RainbowAcross {
-    fn new(leds: NonZeroUsize, speed: usize, brightness: u8, _options: Map<String, Value>) -> Self {
-        Self {
-            pos: 0,
-            led_count: leds,
-            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
-            brightness,
-        }
-    }
-}
-
-impl Information for RainbowAcross {
     fn get_info() -> PatternInfo {
         PatternInfo {
-            pattern: crate::model::PatternName::RainbowAcross,
+            pattern_id: crate::model::PatternName::RainbowAcross,
+            name: "Rainbow Across",
             description: &"Rainbow gradient travels over the leds over time",
             can_choose_color: false,
             animation_speeds: Self::SPEEDS.len(),
@@ -64,13 +50,29 @@ impl Information for RainbowAcross {
 
     fn get_current_settings(&self) -> crate::model::PatternConfiguration {
         PatternConfiguration {
-            name: crate::model::PatternName::RainbowAcross,
+            pattern_id: crate::model::PatternName::RainbowAcross,
             animation_speed: Self::SPEEDS
                 .iter()
                 .position(|&s| s == self.sleep_millis as usize),
-            brightness: self.brightness,
+            brightness: self.global_brightness,
             colors: Option::None,
             additional_settings: vec![],
+        }
+    }
+}
+
+impl ColorlessPattern for RainbowAcross {
+    fn new(
+        leds: NonZeroUsize,
+        speed: usize,
+        brightness: u8,
+        _options: Vec<ConfigurationSetting>,
+    ) -> Self {
+        Self {
+            pos: 0,
+            led_count: leds,
+            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
+            global_brightness: brightness,
         }
     }
 }

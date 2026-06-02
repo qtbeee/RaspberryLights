@@ -1,21 +1,24 @@
-use std::{num::NonZeroUsize, str::FromStr, sync::Arc};
+use std::{
+    num::NonZeroUsize,
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
 
 use axum::{Extension, Json, extract};
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
 
 use crate::{
     light_pattern::{
         Breathing, BreathingConfigurable, Color, ColorPattern, ColorlessPattern, Critmas,
-        Information, LightPattern, RainbowAcross, RainbowInPlace, Scroll, SolidColor, Twinkle,
+        LightPattern, RainbowAcross, RainbowInPlace, Scroll, SolidColor, Twinkle,
     },
-    model::{PatternConfiguration, PatternInfo, PatternName},
+    model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternName},
 };
 
 pub struct ServerState {
     pub sender: tokio::sync::mpsc::Sender<Box<dyn LightPattern + Send>>,
     pub leds_in_use: NonZeroUsize,
-    pub current_pattern_settings: PatternConfiguration,
+    pub current_pattern_settings: Mutex<PatternConfiguration>,
 }
 
 #[derive(Serialize)]
@@ -27,11 +30,11 @@ pub struct Patterns {
 #[serde(rename_all = "camelCase")]
 /// `animation_speed` assumes a zero-based index.
 pub struct PatternRequest {
-    pub pattern: PatternName,
+    pub pattern_id: PatternName,
     pub colors: Option<Vec<String>>,
     pub animation_speed: Option<usize>,
     pub brightness: Option<u8>,
-    pub additional_options: Option<Map<String, Value>>,
+    pub additional_settings: Option<Vec<ConfigurationSetting>>,
 }
 
 pub async fn get_patterns() -> Json<Patterns> {
@@ -52,7 +55,13 @@ pub async fn get_patterns() -> Json<Patterns> {
 pub async fn get_current_pattern(
     Extension(server_state): Extension<Arc<ServerState>>,
 ) -> Json<PatternConfiguration> {
-    Json(server_state.current_pattern_settings.clone())
+    Json(
+        server_state
+            .current_pattern_settings
+            .lock()
+            .unwrap()
+            .clone(),
+    )
 }
 
 pub async fn set_pattern(
@@ -66,9 +75,10 @@ pub async fn set_pattern(
     });
     let animation_speed = request.animation_speed.unwrap_or(0);
     let brightness = request.brightness.map(|b| b.clamp(10, 100)).unwrap_or(100);
-    let options = request.additional_options.unwrap_or(Map::new());
+    println!("additional settings -> {:?}", request.additional_settings);
+    let options = request.additional_settings.unwrap_or(vec![]);
 
-    let pattern: Box<dyn LightPattern + Send> = match request.pattern {
+    let pattern: Box<dyn LightPattern + Send> = match request.pattern_id {
         PatternName::Breathing => Box::new(Breathing::new(
             server_state.leds_in_use,
             animation_speed,
@@ -124,5 +134,11 @@ pub async fn set_pattern(
         )),
     };
 
+    // If we made it this far then the pattern is valid and we can save it
+    // to the server state for `GET /pattern` usage
+    {
+        let mut lock = server_state.current_pattern_settings.lock().unwrap();
+        *lock = pattern.get_current_settings();
+    }
     let _ = server_state.sender.send(pattern).await;
 }

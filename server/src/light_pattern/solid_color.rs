@@ -1,10 +1,8 @@
 use std::num::NonZeroUsize;
 
-use serde_json::{Map, Value};
+use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo};
 
-use crate::model::{PatternConfiguration, PatternInfo};
-
-use super::{Color, ColorPattern, Information, LightPattern};
+use super::{Color, ColorPattern, LightPattern};
 
 pub struct SolidColor {
     leds: NonZeroUsize,
@@ -32,6 +30,27 @@ impl LightPattern for SolidColor {
     fn get_sleep_millis(&self) -> u64 {
         self.sleep_millis
     }
+
+    fn get_info() -> PatternInfo {
+        PatternInfo {
+            pattern_id: crate::model::PatternName::SolidColor,
+            name: "Solid",
+            description: &"Displays chosen color without animations. If more than one color is specified, colors are spread evenly across.",
+            can_choose_color: true,
+            animation_speeds: Self::SPEEDS.len(),
+            additional_settings: vec![],
+        }
+    }
+
+    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
+        PatternConfiguration {
+            pattern_id: crate::model::PatternName::SolidColor,
+            animation_speed: None,
+            brightness: self.brightness,
+            colors: Option::Some(self.colors.clone()),
+            additional_settings: vec![],
+        }
+    }
 }
 
 impl ColorPattern for SolidColor {
@@ -43,7 +62,7 @@ impl ColorPattern for SolidColor {
         speed: usize,
         brightness: u8,
         colors: &[Color],
-        _options: Map<String, Value>,
+        _options: Vec<ConfigurationSetting>,
     ) -> Self {
         Self {
             leds,
@@ -53,28 +72,6 @@ impl ColorPattern for SolidColor {
                 .map(|c| c.at_brightness_percent(brightness))
                 .collect(),
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
-        }
-    }
-}
-
-impl Information for SolidColor {
-    fn get_info() -> PatternInfo {
-        PatternInfo {
-            pattern: crate::model::PatternName::SolidColor,
-            description: &"Displays chosen color without animations. If more than one color is specified, colors are spread evenly across.",
-            can_choose_color: true,
-            animation_speeds: Self::SPEEDS.len(),
-            additional_settings: vec![],
-        }
-    }
-
-    fn get_current_settings(&self) -> crate::model::PatternConfiguration {
-        PatternConfiguration {
-            name: crate::model::PatternName::SolidColor,
-            animation_speed: None,
-            brightness: self.brightness,
-            colors: Option::Some(self.colors.clone()),
-            additional_settings: vec![],
         }
     }
 }
