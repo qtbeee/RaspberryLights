@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'pattern_setting.g.dart';
 
 @JsonSerializable()
+@immutable
 class PatternSetting {
   final String name;
   final String? description;
@@ -12,7 +14,7 @@ class PatternSetting {
   final bool isPercent;
   final List<String>? options;
 
-  PatternSetting({
+  const PatternSetting({
     required this.name,
     required this.description,
     this.min,
@@ -38,5 +40,6 @@ class PatternSetting {
 
   @override
   String toString() =>
-      '{ name: $name, description: $description, isPercent: $isPercent, type: $settingType }';
+      '{ name: $name, description: $description, isPercent: $isPercent, '
+      'type: $settingType }';
 }

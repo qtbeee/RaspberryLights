@@ -22,7 +22,7 @@ class Host extends _$Host {
     }
   }
 
-  void setHostUrl((String, int) host) async {
+  Future<void> setHostUrl((String, int) host) async {
     final preferences = await ref.read(sharedPreferencesProvider.future);
 
     await preferences.setString(hostIpKey, host.$1);

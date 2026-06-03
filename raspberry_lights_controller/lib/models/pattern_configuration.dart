@@ -6,6 +6,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'pattern_configuration.g.dart';
 
 @JsonSerializable(createToJson: false)
+@immutable
 class RGBColor {
   final int red;
   final int green;
@@ -18,6 +19,7 @@ class RGBColor {
 }
 
 @JsonSerializable()
+@immutable
 class PatternConfigurationSetting {
   final String name;
   final int value;
@@ -47,6 +49,7 @@ class PatternConfigurationSetting {
 }
 
 @JsonSerializable(createToJson: false)
+@immutable
 class PatternConfiguration {
   final String patternId;
   final int? animationSpeed;
@@ -64,7 +67,7 @@ class PatternConfiguration {
            ?.map((c) => Color.fromRGBO(c.red, c.green, c.blue, 1))
            .toList();
 
-  PatternConfiguration.colorBased({
+  const PatternConfiguration.colorBased({
     required this.patternId,
     required this.animationSpeed,
     required this.brightness,
@@ -73,10 +76,10 @@ class PatternConfiguration {
   });
 
   PatternConfiguration copyWith({
-    final int? animationSpeed,
-    final int? brightness,
-    final List<Color>? colors,
-    final List<PatternConfigurationSetting>? additionalSettings,
+    int? animationSpeed,
+    int? brightness,
+    List<Color>? colors,
+    List<PatternConfigurationSetting>? additionalSettings,
   }) {
     return PatternConfiguration.colorBased(
       patternId: patternId,

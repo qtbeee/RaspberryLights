@@ -11,21 +11,24 @@ class AppSettings extends ConsumerWidget {
     final host = ref.watch(hostProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Settings'), leading: BackButton()),
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: const BackButton(),
+      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const .symmetric(horizontal: 16),
         child: Column(
           children: [
             Row(
               children: [
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: .start,
                     children: [
-                      Text(
+                      const Text(
                         'Connection Information',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: .bold,
                           fontSize: 18,
                         ),
                       ),
@@ -34,9 +37,9 @@ class AppSettings extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () {
-                    openUpdateHostUrlDialog(context, ref);
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    await openUpdateHostUrlDialog(context, ref);
                   },
                 ),
               ],
@@ -59,7 +62,7 @@ class DisplayUrl extends StatelessWidget {
     if (host != null) {
       return Text('${host.$1}:${host.$2}');
     } else {
-      return Text(
+      return const Text(
         'Not Configured',
         style: TextStyle(fontStyle: FontStyle.italic),
       );

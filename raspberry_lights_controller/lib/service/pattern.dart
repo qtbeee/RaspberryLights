@@ -8,7 +8,7 @@ import 'package:raspberry_lights_controller/providers/network.dart';
 import 'package:raspberry_lights_controller/providers/pattern_list.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
 
-void setLightPattern(
+Future<void> setLightPattern(
   WidgetRef ref,
   PatternConfiguration patternConfiguration,
 ) async {
@@ -36,10 +36,10 @@ void setLightPattern(
                 ),
               )
               .toList()
-        : [],
+        : <PatternConfiguration>[],
   };
 
-  await client.post(
+  await client.post<void>(
     'pattern',
     data: data,
     options: Options(contentType: ContentType.json.toString()),

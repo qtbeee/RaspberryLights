@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
 
 class ColorTile extends ConsumerWidget {
-  const ColorTile({super.key, required this.color, this.onTap, this.onDelete});
+  const ColorTile({required this.color, super.key, this.onTap, this.onDelete});
 
   final Color color;
   final VoidCallback? onTap;
@@ -12,14 +12,14 @@ class ColorTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
-      contentPadding: const EdgeInsets.only(left: 8),
+      contentPadding: const .only(left: 8),
       title: Row(
         children: [
           SizedBox(
             width: 76,
             child: Text(
               color.toHexString(),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: .bold),
             ),
           ),
           const SizedBox(width: 5),

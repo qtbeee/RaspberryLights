@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class HSVColorSlider extends StatefulWidget {
   const HSVColorSlider({
-    super.key,
     required this.onColorChanged,
     required this.color,
+    super.key,
   });
 
   final ValueChanged<HSVColor> onColorChanged;
@@ -110,10 +110,10 @@ class _GradientSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Slider does not take a gradient, so we will make our own to sit underneath it
-        // And also hide the normal colors of the slider
+        // Slider does not take a gradient, so we will make our own to sit
+        // underneath it and also hide the normal colors of the slider
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 21),
+          padding: const .symmetric(horizontal: 24, vertical: 21),
           child: Container(
             height: 6,
             decoration: BoxDecoration(

@@ -12,6 +12,6 @@ Future<PatternConfiguration> currentPattern(Ref ref) async {
     throw NoBaseUrlException();
   }
 
-  var response = await client.get('pattern');
-  return PatternConfiguration.fromJson(response.data);
+  final response = await client.get<Map<String, dynamic>>('pattern');
+  return PatternConfiguration.fromJson(response.data!);
 }

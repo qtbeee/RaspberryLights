@@ -1,3 +1,4 @@
+import 'package:raspberry_lights_controller/models/get_pattern_list_response.dart';
 import 'package:raspberry_lights_controller/models/pattern_info.dart';
 import 'package:raspberry_lights_controller/providers/network.dart';
 import 'package:raspberry_lights_controller/utils/exception.dart';
@@ -12,8 +13,6 @@ Future<List<PatternInfo>> patternList(Ref ref) async {
     throw NoBaseUrlException();
   }
 
-  var response = await client.get('patterns');
-  return List.from(
-    response.data['patterns'],
-  ).map((v) => PatternInfo.fromJson(v)).toList();
+  final response = await client.get<Map<String, dynamic>>('patterns');
+  return GetPatternListResponse.fromJson(response.data!).patterns;
 }

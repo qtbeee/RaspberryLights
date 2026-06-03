@@ -17,7 +17,7 @@ Future<List<Color>?> openColorsEditor(
 
 class ColorsEditorPage extends ConsumerStatefulWidget {
   final List<Color> initialColors;
-  const ColorsEditorPage({super.key, required this.initialColors});
+  const ColorsEditorPage({required this.initialColors, super.key});
 
   @override
   ConsumerState<ColorsEditorPage> createState() => _ColorsEditorPageState();
@@ -76,26 +76,26 @@ class _ColorsEditorPageState extends ConsumerState<ColorsEditorPage> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: Icon(Icons.close),
+          icon: const Icon(Icons.close),
         ),
         actions: [
           IconButton(
             onPressed: () => Navigator.of(context).pop(colors),
-            icon: Icon(Icons.check),
+            icon: const Icon(Icons.check),
           ),
         ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const .symmetric(horizontal: 16),
             child: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
+              alignment: .spaceBetween,
+              crossAxisAlignment: .center,
               children: [
                 Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: .min,
+                  mainAxisAlignment: .end,
                   children: [
                     ElevatedButton.icon(
                       onPressed: () async {
@@ -105,7 +105,7 @@ class _ColorsEditorPageState extends ConsumerState<ColorsEditorPage> {
                         }
                       },
                       label: const Text('Set from Palette'),
-                      icon: Icon(Icons.palette),
+                      icon: const Icon(Icons.palette),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton.icon(
@@ -119,7 +119,7 @@ class _ColorsEditorPageState extends ConsumerState<ColorsEditorPage> {
                         }
                       },
                       label: const Text('Add Color'),
-                      icon: Icon(Icons.add),
+                      icon: const Icon(Icons.add),
                     ),
                   ],
                 ),

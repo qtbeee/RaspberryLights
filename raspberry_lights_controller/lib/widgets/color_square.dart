@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ColorSquare extends StatelessWidget {
-  const ColorSquare({super.key, required this.color, required this.onTap});
+  const ColorSquare({required this.color, required this.onTap, super.key});
 
   final Color color;
   final ValueChanged<Color>? onTap;

@@ -42,11 +42,11 @@ class PatternSettingsEditor extends ConsumerStatefulWidget {
   final PatternInfo patternInfo;
 
   const PatternSettingsEditor({
-    super.key,
     required this.animationSpeed,
     required this.brightness,
     required this.additionalSettings,
     required this.patternInfo,
+    super.key,
   });
 
   @override
@@ -86,7 +86,7 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const .symmetric(horizontal: 16),
           child: Column(
             spacing: 4,
             children: [
@@ -167,18 +167,20 @@ class _DropdownSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const .symmetric(vertical: 8, horizontal: 16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: .stretch,
           children: [
-            Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(name, style: const TextStyle(fontWeight: .bold)),
             DropdownMenu(
               dropdownMenuEntries: options.indexed
                   .map(
                     (a) => DropdownMenuEntry(
                       value: a.$1,
                       label: a.$2,
-                      trailingIcon: value == a.$1 ? Icon(Icons.check) : null,
+                      trailingIcon: value == a.$1
+                          ? const Icon(Icons.check)
+                          : null,
                     ),
                   )
                   .toList(),
@@ -188,8 +190,10 @@ class _DropdownSetting extends StatelessWidget {
                   onChanged(choice);
                 }
               },
-              expandedInsets: EdgeInsets.zero,
-              inputDecorationTheme: InputDecorationTheme(isCollapsed: true),
+              expandedInsets: .zero,
+              inputDecorationTheme: const InputDecorationTheme(
+                isCollapsed: true,
+              ),
             ),
           ],
         ),
@@ -234,11 +238,11 @@ class _SliderSetting extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const .symmetric(vertical: 8, horizontal: 16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: .stretch,
           children: [
-            Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(name, style: const TextStyle(fontWeight: .bold)),
             Column(
               children: [
                 Slider(
@@ -249,7 +253,7 @@ class _SliderSetting extends StatelessWidget {
                   divisions: divisions,
                   onChanged: (value) => onChanged(value.toInt()),
                 ),
-                Row(children: [Text(minLabel), Spacer(), Text(maxLabel)]),
+                Row(children: [Text(minLabel), const Spacer(), Text(maxLabel)]),
               ],
             ),
           ],

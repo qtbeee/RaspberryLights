@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/providers/saved_color.dart';
-import 'package:raspberry_lights_controller/widgets/hsv_color_slider.dart';
-import 'package:raspberry_lights_controller/widgets/color_tile.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
+import 'package:raspberry_lights_controller/widgets/color_tile.dart';
+import 'package:raspberry_lights_controller/widgets/hsv_color_slider.dart';
 import 'package:raspberry_lights_controller/widgets/palette_list.dart';
 
 Future<Color?> openColorPicker(BuildContext context, Color initialColor) async {
@@ -15,7 +17,7 @@ Future<Color?> openColorPicker(BuildContext context, Color initialColor) async {
 }
 
 class ColorPickerPage extends StatefulWidget {
-  const ColorPickerPage({super.key, required this.initialColor});
+  const ColorPickerPage({required this.initialColor, super.key});
 
   final Color initialColor;
 
@@ -43,7 +45,7 @@ class _ColorPickerPageState extends State<ColorPickerPage>
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: Icon(Icons.close),
+          icon: const Icon(Icons.close),
         ),
         bottom: TabBar(tabs: _tabs, controller: _controller),
         actions: [
@@ -56,20 +58,20 @@ class _ColorPickerPageState extends State<ColorPickerPage>
         ],
       ),
       body: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: .min,
+        crossAxisAlignment: .stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const .symmetric(horizontal: 20, vertical: 10),
             child: Stack(
               alignment: Alignment.center,
               children: [
                 ConstrainedBox(
-                  constraints: const BoxConstraints.expand(height: 80),
+                  constraints: const .expand(height: 80),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       color: rgbColor,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: .circular(4),
                       boxShadow: const [
                         BoxShadow(
                           color: Colors.black38,
@@ -82,9 +84,9 @@ class _ColorPickerPageState extends State<ColorPickerPage>
                 ),
                 Text(
                   rgbColor.toHexString().toUpperCase(),
-                  textAlign: TextAlign.center,
+                  textAlign: .center,
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: .bold,
                     color:
                         ThemeData.estimateBrightnessForColor(rgbColor) ==
                             Brightness.light
@@ -152,7 +154,7 @@ class _SavedColorList extends ConsumerWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const .symmetric(horizontal: 16),
           child: Row(
             children: [
               const Text(
@@ -164,7 +166,9 @@ class _SavedColorList extends ConsumerWidget {
               TextButton(
                 child: const Text('Add to Favorites'),
                 onPressed: () {
-                  ref.read(savedColorsProvider.notifier).saveColor(color);
+                  unawaited(
+                    ref.read(savedColorsProvider.notifier).saveColor(color),
+                  );
                 },
               ),
             ],
@@ -182,7 +186,11 @@ class _SavedColorList extends ConsumerWidget {
                 key: Key(item.toHexString()),
                 onTap: () => onTapColor(item),
                 onDelete: () {
-                  ref.read(savedColorsProvider.notifier).removeSavedColor(item);
+                  unawaited(
+                    ref
+                        .read(savedColorsProvider.notifier)
+                        .removeSavedColor(item),
+                  );
                 },
               );
             },

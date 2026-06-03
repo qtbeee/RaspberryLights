@@ -9,7 +9,7 @@ import 'package:raspberry_lights_controller/widgets/loading.dart';
 import 'package:raspberry_lights_controller/widgets/update_host_url_dialog.dart';
 
 class Home extends ConsumerWidget {
-  const Home({super.key, required this.title});
+  const Home({required this.title, super.key});
 
   final String title;
 
@@ -25,43 +25,40 @@ class Home extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              ref.invalidate(patternListProvider);
-              ref.invalidate(currentPatternProvider);
+              ref
+                ..invalidate(patternListProvider)
+                ..invalidate(currentPatternProvider);
             },
           ),
           IconButton(
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (context) => AppSettings()));
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => const AppSettings(),
+                ),
+              );
             },
             icon: const Icon(Icons.settings),
           ),
         ],
       ),
-      body: currentPattern.when(
-        data: (_) => patternList.when(
-          data: (data) => CurrentPattern(),
-          error: onError,
-          loading: onLoading,
-          skipLoadingOnRefresh: false,
-        ),
-        error: onError,
-        loading: onLoading,
-        skipLoadingOnRefresh: false,
-      ),
+      body: switch ((currentPattern, patternList)) {
+        (AsyncValue(hasError: true, :final error), _) => onError(error!),
+        (_, AsyncValue(hasError: true, :final error)) => onError(error!),
+        (AsyncValue(hasValue: true), AsyncValue(hasValue: true)) =>
+          const CurrentPattern(),
+        _ => const Loading(),
+      },
     );
   }
 }
 
-Widget onError(Object error, StackTrace _) {
+Widget onError(Object error) {
   if (error is NoBaseUrlException) {
     return const NoBaseUrl();
   }
   return FailedToFetch(error: error.toString());
 }
-
-Widget onLoading() => const Loading();
 
 class NoBaseUrl extends ConsumerWidget {
   const NoBaseUrl({super.key});
@@ -69,17 +66,17 @@ class NoBaseUrl extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: .stretch,
+      mainAxisAlignment: .center,
       children: [
-        Text(
+        const Text(
           'No Saved Connection',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 24, fontWeight: .bold),
           textAlign: TextAlign.center,
         ),
         TextButton(
-          onPressed: () {
-            openUpdateHostUrlDialog(context, ref);
+          onPressed: () async {
+            await openUpdateHostUrlDialog(context, ref);
           },
           child: const Text('Setup'),
         ),
@@ -90,23 +87,24 @@ class NoBaseUrl extends ConsumerWidget {
 
 class FailedToFetch extends ConsumerWidget {
   final String error;
-  const FailedToFetch({super.key, required this.error});
+
+  const FailedToFetch({required this.error, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: .center,
+      crossAxisAlignment: .stretch,
       children: [
         const Text(
           'Failed to fetch data.',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 24, fontWeight: .bold),
           textAlign: TextAlign.center,
         ),
         Text(error, textAlign: TextAlign.center),
         TextButton(
-          onPressed: () {
-            openUpdateHostUrlDialog(context, ref);
+          onPressed: () async {
+            await openUpdateHostUrlDialog(context, ref);
           },
           child: const Text('Edit Connection'),
         ),

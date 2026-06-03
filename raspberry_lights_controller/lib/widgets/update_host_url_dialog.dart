@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -7,14 +8,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/providers/network.dart';
 
-void openUpdateHostUrlDialog(BuildContext context, WidgetRef ref) async {
+Future<void> openUpdateHostUrlDialog(
+  BuildContext context,
+  WidgetRef ref,
+) async {
   final host = ref.read(hostProvider);
   final result = await showDialog<(String, int)>(
-    builder: (BuildContext context) => UpdateHostUrlDialog(host),
+    builder: (context) => UpdateHostUrlDialog(host),
     context: context,
   );
   if (result != null) {
-    ref.read(hostProvider.notifier).setHostUrl(result);
+    await ref.read(hostProvider.notifier).setHostUrl(result);
   }
 }
 
@@ -42,51 +46,46 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
   final _hostnames = <String, String>{};
 
   @override
-  initState() {
+  void initState() {
     if (widget.initialHost != null) {
       _ipController.text = widget.initialHost?.$1 ?? '';
       _portController.text = widget.initialHost?.$2.toString() ?? '';
     }
 
-    setupBonsoir();
+    unawaited(setupBonsoir());
 
-    checkAddress();
+    unawaited(checkAddress());
     checkPort();
     super.initState();
   }
 
   Future<void> setupBonsoir() async {
     await _bonsoirClient.initialize();
-    _bonsoirClient.eventStream?.listen((event) {
+    _bonsoirClient.eventStream?.listen((event) async {
       switch (event) {
         case BonsoirDiscoveryServiceFoundEvent():
-          log('Service found : ${event.service.toJson()}');
-          event.service.resolve(
+          log('Service found: ${event.service}');
+          await event.service.resolve(
             _bonsoirClient.serviceResolver,
           ); // Should be called when the user wants to connect to this service.
         case BonsoirDiscoveryServiceResolvedEvent():
-          final jsonService = event.service.toJson();
-          log('Service resolved : $jsonService');
           log(
-            "${jsonService.toString()} ${jsonService["service.name"]} ${jsonService["service.host"]}",
+            'Service resolved: ${event.service.name} '
+            '${event.service.hostAddress}',
           );
           setState(() {
-            _hostnames[jsonService['service.name']] =
-                jsonService['service.host'];
+            _hostnames[event.service.name] = event.service.hostAddress!;
           });
-          break;
         case BonsoirDiscoveryServiceLostEvent():
-          final jsonService = event.service.toJson();
-          log('Service lost : $jsonService');
+          log('Service lost : ${event.service}');
           setState(() {
-            _hostnames.remove(jsonService['service.name']);
+            _hostnames.remove(event.service.name);
           });
         case BonsoirDiscoveryServiceUpdatedEvent():
           final jsonService = event.service.toJson();
           log('Service Updated : $jsonService');
           setState(() {
-            _hostnames[jsonService['service.name']] =
-                jsonService['service.host'];
+            _hostnames[event.service.name] = event.service.hostAddress!;
           });
         case BonsoirDiscoveryServiceResolveFailedEvent():
         case BonsoirDiscoveryStoppedEvent():
@@ -101,11 +100,11 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
 
   @override
   void dispose() {
-    _bonsoirClient.stop();
+    unawaited(_bonsoirClient.stop());
     super.dispose();
   }
 
-  void checkAddress() async {
+  Future<void> checkAddress() async {
     try {
       final isValidAsIp = InternetAddress.tryParse(_ipController.text) != null;
       if (isValidAsIp) {
@@ -121,7 +120,7 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
           resolvedHost = a.first.address;
         });
       }
-    } catch (e) {
+    } on Exception {
       setState(() {
         isValidHost = false;
         resolvedHost = null;
@@ -142,7 +141,7 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
           isValidPort = false;
         });
       }
-    } catch (e) {
+    } on FormatException {
       setState(() {
         isValidPort = false;
       });
@@ -155,30 +154,32 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
 
     return AlertDialog(
       content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           TextField(
             controller: _ipController,
-            decoration: InputDecoration(labelText: 'Host IP'),
+            decoration: const InputDecoration(labelText: 'Host IP'),
             onChanged: (_) => checkAddress(),
           ),
           TextField(
             controller: _portController,
-            keyboardType: TextInputType.number,
+            keyboardType: .number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(labelText: 'Host Port'),
+            decoration: const InputDecoration(labelText: 'Host Port'),
             onChanged: (_) => checkPort(),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+          const Padding(
+            padding: .symmetric(vertical: 10),
             child: Text(
               'Tap below to autofill IP',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: .bold),
             ),
           ),
-          // NOTE: If only I could remember how to make a ListView.builder work nicely with nested scrolling???
-          // Thankfully most people shouldn't have rendering issues with having too many things in the list... right?
-          for (var item in indexedHostnames)
+          // TODO: If only I could remember how to make a ListView.builder work
+          // nicely with nested scrolling???
+          // Thankfully most people shouldn't have rendering issues with having
+          // too many things in the list... right?
+          for (final item in indexedHostnames)
             ListTile(
               title: Text(item.key),
               subtitle: Text(item.value),
@@ -186,7 +187,7 @@ class _UpdateHostUrlDialogState extends State<UpdateHostUrlDialog> {
                 setState(() {
                   _ipController.text = item.value;
                 });
-                checkAddress();
+                unawaited(checkAddress());
               },
             ),
         ],

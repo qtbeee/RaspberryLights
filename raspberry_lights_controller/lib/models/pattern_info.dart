@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:raspberry_lights_controller/models/pattern_setting.dart';
 
 part 'pattern_info.g.dart';
 
 @JsonSerializable()
+@immutable
 class PatternInfo {
   final String patternId;
   final String name;
@@ -12,7 +14,7 @@ class PatternInfo {
   final int animationSpeeds;
   final List<PatternSetting> additionalSettings;
 
-  PatternInfo({
+  const PatternInfo({
     required this.patternId,
     required this.name,
     required this.description,
@@ -38,13 +40,14 @@ class PatternInfo {
 
   @override
   String toString() {
-    return '''{
+    return '''
+{
       patternId: $patternId,
       name: $name,
       description: $description,
       canChooseColor: $canChooseColor,
       animationSpeeds: $animationSpeeds,
       additionalSettings: $additionalSettings,
-    }''';
+}''';
   }
 }

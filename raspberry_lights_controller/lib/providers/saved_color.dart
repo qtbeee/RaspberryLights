@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:raspberry_lights_controller/providers/shared_preferences.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:raspberry_lights_controller/utils/color.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'saved_color.g.dart';
 
@@ -15,7 +15,7 @@ class SavedColors extends _$SavedColors {
     final preferences = ref.watch(sharedPreferencesProvider).value;
     return preferences
             ?.getStringList(savedColorKey)
-            ?.map((item) => LedColor.fromShortHex(item))
+            ?.map(LedColor.fromShortHex)
             .toList() ??
         [];
   }
@@ -23,7 +23,7 @@ class SavedColors extends _$SavedColors {
   List<String> _stateToStringList() =>
       state.map((color) => color.toHexString()).toList();
 
-  void saveColor(Color color) async {
+  Future<void> saveColor(Color color) async {
     if (!state.contains(color)) {
       state = [...state, color];
     }
@@ -32,7 +32,7 @@ class SavedColors extends _$SavedColors {
     await preferences?.setStringList(savedColorKey, _stateToStringList());
   }
 
-  void removeSavedColor(Color color) async {
+  Future<void> removeSavedColor(Color color) async {
     final newState = state.toList()..remove(color);
     state = newState;
 

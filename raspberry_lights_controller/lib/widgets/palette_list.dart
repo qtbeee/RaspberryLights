@@ -3,7 +3,10 @@ import 'package:raspberry_lights_controller/widgets/color_square.dart';
 
 class PaletteList extends StatelessWidget {
   const PaletteList({super.key, this.onColorSelected, this.onPaletteSelected})
-    : assert(onColorSelected != null || onPaletteSelected != null);
+    : assert(
+        onColorSelected != null || onPaletteSelected != null,
+        'onColorSelected and onPaletteSelected cannot both be null',
+      );
 
   final ValueChanged<Color>? onColorSelected;
   final ValueChanged<List<Color>>? onPaletteSelected;
@@ -11,10 +14,11 @@ class PaletteList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: .min,
+      crossAxisAlignment: .start,
       children: [
-        // The raspberry pi doesn't like anything near white @ full brightness on the entire 50 led strip...
+        // The raspberry pi doesn't like anything near white @ full brightness
+        // on the entire 50 led strip...
         // And I don't know enough about hardware to understand why.
         // Palette(
         //   onColorSelected: onColorSelected,
@@ -120,12 +124,15 @@ class PaletteList extends StatelessWidget {
 
 class Palette extends StatelessWidget {
   const Palette({
-    super.key,
     required this.title,
     required this.colors,
+    super.key,
     this.onColorSelected,
     this.onPaletteSelected,
-  }) : assert(onColorSelected != null || onPaletteSelected != null);
+  }) : assert(
+         onColorSelected != null || onPaletteSelected != null,
+         'onColorSelected and onPaletteSelected must not both be null',
+       );
 
   final String title;
   final List<Color> colors;
@@ -140,19 +147,19 @@ class Palette extends StatelessWidget {
             ? () => onPaletteSelected!(colors)
             : null,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const .symmetric(horizontal: 16, vertical: 10),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: .stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: const .only(bottom: 12),
                 child: Opacity(
                   opacity: .5,
                   child: Text(
                     title,
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: .w700,
                     ),
                   ),
                 ),

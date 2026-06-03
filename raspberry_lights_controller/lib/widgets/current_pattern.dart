@@ -27,7 +27,7 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
     super.initState();
     final currentPatternConfig = ref.read(currentPatternProvider).requireValue;
     patternConfiguration = currentPatternConfig;
-    holdoverColors = currentPatternConfig.colors ?? [Color(0xFF942cff)];
+    holdoverColors = currentPatternConfig.colors ?? [const Color(0xFF942cff)];
   }
 
   @override
@@ -41,20 +41,23 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
     final hasChanges = patternConfiguration != currentPattern;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: .stretch,
       children: [
-        SummaryCard(
+        _SummaryCard(
           child: Padding(
-            padding: const EdgeInsets.only(left: 16),
+            padding: const .only(left: 16),
             child: Row(
               children: [
-                Text('Pattern', style: TextStyle(fontWeight: FontWeight.bold)),
-                Spacer(),
+                const Text(
+                  'Pattern',
+                  style: .new(fontWeight: .bold),
+                ),
+                const Spacer(),
                 Text(selectedPattern.name),
                 PopupMenuButton(
                   position: PopupMenuPosition.under,
                   onSelected: onChangeSelectedPattern,
-                  icon: Icon(Icons.edit),
+                  icon: const Icon(Icons.edit),
                   itemBuilder: (context) {
                     return patternList.map((p) {
                       final (patternId, name, desc) = (
@@ -67,9 +70,9 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                         child: Row(
                           children: [
                             Text(name),
-                            Spacer(),
+                            const Spacer(),
                             if (patternId == patternConfiguration.patternId)
-                              Icon(Icons.check),
+                              const Icon(Icons.check),
                           ],
                         ),
                       );
@@ -80,18 +83,18 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
             ),
           ),
         ),
-        SummaryCard(
+        _SummaryCard(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: .stretch,
             children: [
               Stack(
-                alignment: AlignmentDirectional.centerEnd,
+                alignment: .centerEnd,
                 children: [
-                  Center(
+                  const Center(
                     child: Text(
                       'Main Settings',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
+                      style: TextStyle(fontWeight: .bold),
+                      textAlign: .center,
                     ),
                   ),
                   IconButton(
@@ -114,39 +117,39 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                         });
                       }
                     },
-                    icon: Icon(Icons.edit),
+                    icon: const Icon(Icons.edit),
                   ),
                 ],
               ),
-              BrightnessEntry(brightness: patternConfiguration.brightness),
+              _BrightnessEntry(brightness: patternConfiguration.brightness),
               if (patternConfiguration.animationSpeed != null)
-                AnimationSpeedEntry(
+                _AnimationSpeedEntry(
                   animationSpeed: patternConfiguration.animationSpeed!,
                 ),
               for (final setting in patternConfiguration.additionalSettings)
-                AdditionalSettingEntry(
+                _AdditionalSettingEntry(
                   name: setting.name,
                   value: setting.value,
                   patternSettingInfo: selectedPattern.additionalSettings
                       .firstWhere((s) => s.name == setting.name),
                 ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
           ),
         ),
         if (patternConfiguration.colors != null)
-          SummaryCard(
+          _SummaryCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: .stretch,
               children: [
                 Stack(
-                  alignment: AlignmentDirectional.centerEnd,
+                  alignment: .centerEnd,
                   children: [
-                    Center(
+                    const Center(
                       child: Text(
                         'Colors',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: .bold),
+                        textAlign: .center,
                       ),
                     ),
                     IconButton(
@@ -163,15 +166,14 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                           });
                         }
                       },
-                      icon: Icon(Icons.edit),
+                      icon: const Icon(Icons.edit),
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const .symmetric(horizontal: 16),
                   child: Wrap(
-                    direction: Axis.horizontal,
                     runSpacing: 8,
                     spacing: 8,
                     children: [
@@ -181,17 +183,16 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                     ],
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
               ],
             ),
           ),
-        Spacer(),
+        const Spacer(),
         SafeArea(
-          bottom: true,
           child: Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16),
+            padding: const .only(left: 16, right: 16),
             child: AnimatedSlide(
-              duration: Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOut,
               offset: hasChanges
                   ? Offset.zero
@@ -203,11 +204,11 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                       onPressed: hasChanges
                           ? () => setLightPattern(ref, patternConfiguration)
                           : null,
-                      label: Text('Save Changes'),
-                      icon: Icon(Icons.check),
+                      label: const Text('Save Changes'),
+                      icon: const Icon(Icons.check),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: hasChanges
@@ -215,8 +216,8 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                               patternConfiguration = currentPattern;
                             })
                           : null,
-                      icon: Icon(Icons.undo),
-                      label: Text('Clear Changes'),
+                      icon: const Icon(Icons.undo),
+                      label: const Text('Clear Changes'),
                     ),
                   ),
                 ],
@@ -233,7 +234,7 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
         .read(patternListProvider)
         .requireValue
         .firstWhere((p) => p.patternId == newPatternId);
-    PatternConfiguration newConfiguration = PatternConfiguration.colorBased(
+    final newConfiguration = PatternConfiguration.colorBased(
       patternId: newPatternId,
       animationSpeed: newSelectedPattern.animationSpeeds > 1 ? 0 : null,
       brightness: 100,
@@ -242,7 +243,10 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
           : null,
       additionalSettings: newSelectedPattern.additionalSettings
           .map(
-            (s) => PatternConfigurationSetting(name: s.name, value: s.min ?? 0),
+            (s) => PatternConfigurationSetting(
+              name: s.name,
+              value: s.min ?? 0,
+            ),
           )
           .toList(),
     );
@@ -253,34 +257,32 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
   }
 }
 
-class SummaryCard extends StatelessWidget {
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({required this.child});
   final Widget child;
-
-  const SummaryCard({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 8, right: 16),
+      padding: const .only(left: 16, top: 8, right: 16),
       child: Card(child: child),
     );
   }
 }
 
-class SummaryEntry extends StatelessWidget {
+class _SummaryEntry extends StatelessWidget {
+  const _SummaryEntry({required this.title, required this.value});
   final String title;
   final String value;
-
-  const SummaryEntry({super.key, required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const .symmetric(horizontal: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: .spaceBetween,
         children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(fontWeight: .bold)),
           Text(value),
         ],
       ),
@@ -288,42 +290,39 @@ class SummaryEntry extends StatelessWidget {
   }
 }
 
-class BrightnessEntry extends StatelessWidget {
+class _BrightnessEntry extends StatelessWidget {
+  const _BrightnessEntry({required this.brightness});
   final int brightness;
-
-  const BrightnessEntry({super.key, required this.brightness});
 
   @override
   Widget build(BuildContext context) {
-    return SummaryEntry(title: 'Brightness', value: '$brightness%');
+    return _SummaryEntry(title: 'Brightness', value: '$brightness%');
   }
 }
 
-class AnimationSpeedEntry extends StatelessWidget {
+class _AnimationSpeedEntry extends StatelessWidget {
+  const _AnimationSpeedEntry({required this.animationSpeed});
   final int animationSpeed;
-
-  const AnimationSpeedEntry({super.key, required this.animationSpeed});
 
   @override
   Widget build(BuildContext context) {
     // Shifting from 0-indexed to 1-indexed here because 0 implies no movement
     final value = animationSpeed + 1;
 
-    return SummaryEntry(title: 'Animation Speed', value: '$value');
+    return _SummaryEntry(title: 'Animation Speed', value: '$value');
   }
 }
 
-class AdditionalSettingEntry extends StatelessWidget {
-  final String name;
-  final int value;
-  final PatternSetting patternSettingInfo;
-
-  const AdditionalSettingEntry({
-    super.key,
+class _AdditionalSettingEntry extends StatelessWidget {
+  const _AdditionalSettingEntry({
     required this.name,
     required this.value,
     required this.patternSettingInfo,
   });
+
+  final String name;
+  final int value;
+  final PatternSetting patternSettingInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -335,6 +334,6 @@ class AdditionalSettingEntry extends StatelessWidget {
       valueText = patternSettingInfo.options![value];
     }
 
-    return SummaryEntry(title: name, value: valueText);
+    return _SummaryEntry(title: name, value: valueText);
   }
 }
