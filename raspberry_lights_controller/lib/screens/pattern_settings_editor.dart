@@ -110,6 +110,7 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
                     value: setting.value,
                     options: settingInfo.options!,
                     onChanged: makeOnChanged(setting.name),
+                    description: settingInfo.description,
                   );
                 } else {
                   return _SliderSetting(
@@ -119,6 +120,7 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
                     max: settingInfo.max!,
                     isPercent: settingInfo.isPercent,
                     onChanged: makeOnChanged(setting.name),
+                    description: settingInfo.description,
                   );
                 }
               }),
@@ -153,6 +155,7 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
 class _DropdownSetting extends StatelessWidget {
   final String name;
   final int value;
+  final String? description;
   final List<String> options;
   final void Function(int newValue) onChanged;
 
@@ -161,6 +164,7 @@ class _DropdownSetting extends StatelessWidget {
     required this.value,
     required this.options,
     required this.onChanged,
+    this.description,
   });
 
   @override
@@ -171,7 +175,13 @@ class _DropdownSetting extends StatelessWidget {
         child: Column(
           crossAxisAlignment: .stretch,
           children: [
-            Text(name, style: const TextStyle(fontWeight: .bold)),
+            Row(
+              children: [
+                Text(name, style: const TextStyle(fontWeight: .bold)),
+                if (description != null) _Description(description: description),
+                const Spacer(),
+              ],
+            ),
             DropdownMenu(
               dropdownMenuEntries: options.indexed
                   .map(
@@ -207,6 +217,7 @@ class _SliderSetting extends StatelessWidget {
   final int value;
   final int min;
   final int max;
+  final String? description;
 
   final bool isPercent;
   final String? minLabel;
@@ -223,6 +234,7 @@ class _SliderSetting extends StatelessWidget {
     required this.max,
     required this.isPercent,
     required this.onChanged,
+    this.description,
     this.minLabel,
     this.maxLabel,
     this.showLabel = true,
@@ -242,7 +254,13 @@ class _SliderSetting extends StatelessWidget {
         child: Column(
           crossAxisAlignment: .stretch,
           children: [
-            Text(name, style: const TextStyle(fontWeight: .bold)),
+            Row(
+              children: [
+                Text(name, style: const TextStyle(fontWeight: .bold)),
+                if (description != null) _Description(description: description),
+                const Spacer(),
+              ],
+            ),
             Column(
               children: [
                 Slider(
@@ -306,6 +324,30 @@ class _BrightnessSlider extends StatelessWidget {
       isPercent: true,
       onChanged: onChanged,
       divisions: 9,
+    );
+  }
+}
+
+class _Description extends StatelessWidget {
+  final String? description;
+
+  const _Description({
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Tooltip(
+        showDuration: const .new(seconds: 30),
+        message: description,
+        triggerMode: .tap,
+        child: const Icon(
+          Icons.help_outline,
+          size: 20,
+        ),
+      ),
     );
   }
 }

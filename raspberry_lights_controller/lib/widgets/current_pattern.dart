@@ -47,6 +47,7 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
           child: Padding(
             padding: const .only(left: 16, bottom: 8),
             child: Column(
+              crossAxisAlignment: .stretch,
               children: [
                 Row(
                   children: [
@@ -62,10 +63,9 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                       icon: const Icon(Icons.edit),
                       itemBuilder: (context) {
                         return patternList.map((p) {
-                          final (patternId, name, desc) = (
+                          final (patternId, name) = (
                             p.patternId,
                             p.name,
-                            p.description,
                           );
                           return PopupMenuItem(
                             value: patternId,
@@ -83,9 +83,13 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
                     ),
                   ],
                 ),
-                Text(
-                  selectedPattern.description,
-                  style: const .new(fontSize: 12),
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Text(
+                    selectedPattern.description,
+                    style: const .new(fontSize: 12),
+                    textAlign: .start,
+                  ),
                 ),
               ],
             ),
