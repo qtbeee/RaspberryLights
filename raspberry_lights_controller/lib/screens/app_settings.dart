@@ -8,7 +8,7 @@ class AppSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final host = ref.watch(hostProvider);
+    final host = ref.watch(hostProvider)?.info;
 
     return Scaffold(
       appBar: AppBar(

@@ -8,27 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Added
-#### Backend
-- Added `description` field to pattern information.
-- Added route for getting the pattern configuration that's currently set.
 
-#### Mobile App
-- Settings page for changing connection information whenever you want.
-- Added ability to display custom pattern configuration settings and set them.
+- Backend: Added `description` field to pattern information.
+- Backend:Added route for getting the pattern configuration that's currently set.
+- App: Settings page for changing connection information whenever you want.
+- App: Added ability to display custom pattern configuration settings and set them.
 
 ### Changed
-#### Backend
-- **Breaking**: Endpoint for getting the list of patterns has been changed to `GET /patterns` to better reflect its function.
 
-#### Mobile App
-- Upgraded various dependencies on the Flutter side.
-- Instead of having a hardcoded base url, let the user decide where to connect.
-- Don't try to fetch patterns when there is no base url set.
-- Home page now displays the currently active pattern's settings.
-- Non-color pattern settings are now grouped together in a card on the home page, which navigates to the settings editor page.
-- Color settings are grouped into a card on the home page, which navigates to a full page version of the color editor. 
-
-
+- **Breaking** Backend: Endpoint for getting the list of patterns has been changed to `GET /patterns` to better reflect its function.
+- App: Upgraded various dependencies on the Flutter side.
+- App: Instead of having a hardcoded base url, let the user decide where to connect.
+- App: Don't try to fetch patterns when there is no base url set.
+- App: Home page now displays the currently active pattern's settings.
+- App: Non-color pattern settings are now grouped together in a card on the home page, which navigates to the settings editor page.
+- App: Color settings are grouped into a card on the home page, which navigates to a full page version of the color editor.
 
 ## 0.4.0 - 2022-11-17
 

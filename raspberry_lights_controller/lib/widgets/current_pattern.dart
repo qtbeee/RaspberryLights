@@ -45,39 +45,47 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
       children: [
         _SummaryCard(
           child: Padding(
-            padding: const .only(left: 16),
-            child: Row(
+            padding: const .only(left: 16, bottom: 8),
+            child: Column(
               children: [
-                const Text(
-                  'Pattern',
-                  style: .new(fontWeight: .bold),
+                Row(
+                  children: [
+                    const Text(
+                      'Pattern',
+                      style: .new(fontWeight: .bold),
+                    ),
+                    const Spacer(),
+                    Text(selectedPattern.name),
+                    PopupMenuButton(
+                      position: PopupMenuPosition.under,
+                      onSelected: onChangeSelectedPattern,
+                      icon: const Icon(Icons.edit),
+                      itemBuilder: (context) {
+                        return patternList.map((p) {
+                          final (patternId, name, desc) = (
+                            p.patternId,
+                            p.name,
+                            p.description,
+                          );
+                          return PopupMenuItem(
+                            value: patternId,
+                            child: Row(
+                              children: [
+                                Text(name),
+                                const Spacer(),
+                                if (patternId == patternConfiguration.patternId)
+                                  const Icon(Icons.check),
+                              ],
+                            ),
+                          );
+                        }).toList();
+                      },
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                Text(selectedPattern.name),
-                PopupMenuButton(
-                  position: PopupMenuPosition.under,
-                  onSelected: onChangeSelectedPattern,
-                  icon: const Icon(Icons.edit),
-                  itemBuilder: (context) {
-                    return patternList.map((p) {
-                      final (patternId, name, desc) = (
-                        p.patternId,
-                        p.name,
-                        p.description,
-                      );
-                      return PopupMenuItem(
-                        value: patternId,
-                        child: Row(
-                          children: [
-                            Text(name),
-                            const Spacer(),
-                            if (patternId == patternConfiguration.patternId)
-                              const Icon(Icons.check),
-                          ],
-                        ),
-                      );
-                    }).toList();
-                  },
+                Text(
+                  selectedPattern.description,
+                  style: const .new(fontSize: 12),
                 ),
               ],
             ),

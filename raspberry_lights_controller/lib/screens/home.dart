@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/providers/current_pattern.dart';
+import 'package:raspberry_lights_controller/providers/network.dart';
 import 'package:raspberry_lights_controller/providers/pattern_list.dart';
 import 'package:raspberry_lights_controller/screens/app_settings.dart';
-import 'package:raspberry_lights_controller/utils/exception.dart';
 import 'package:raspberry_lights_controller/widgets/current_pattern.dart';
-import 'package:raspberry_lights_controller/widgets/loading.dart';
 import 'package:raspberry_lights_controller/widgets/update_host_url_dialog.dart';
 
 class Home extends ConsumerWidget {
@@ -15,8 +14,14 @@ class Home extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final host = ref.watch(hostProvider);
     final patternList = ref.watch(patternListProvider);
     final currentPattern = ref.watch(currentPatternProvider);
+
+    final isLoading = patternList.isLoading || currentPattern.isLoading;
+    final hasError =
+        !isLoading && (patternList.hasError || currentPattern.hasError);
+    final error = patternList.error ?? currentPattern.error;
 
     return Scaffold(
       appBar: AppBar(
@@ -42,26 +47,43 @@ class Home extends ConsumerWidget {
           ),
         ],
       ),
-      body: switch ((currentPattern, patternList)) {
-        (AsyncValue(hasError: true, :final error), _) => onError(error!),
-        (_, AsyncValue(hasError: true, :final error)) => onError(error!),
-        (AsyncValue(hasValue: true), AsyncValue(hasValue: true)) =>
-          const CurrentPattern(),
-        _ => const Loading(),
-      },
+      body: buildBody(
+        isLoading: isLoading,
+        hasError: hasError,
+        host: host,
+        error: error,
+      ),
     );
   }
 }
 
-Widget onError(Object error) {
-  if (error is NoBaseUrlException) {
-    return const NoBaseUrl();
+Widget buildBody({
+  required bool isLoading,
+  required bool hasError,
+  required ConnectionInfo? host,
+  required Object? error,
+}) {
+  if (host == null) {
+    return const Center(child: CircularProgressIndicator());
   }
-  return FailedToFetch(error: error.toString());
+
+  if (host.info == null) {
+    return const _NoBaseUrl();
+  }
+
+  if (isLoading) {
+    return const _Loading();
+  }
+
+  if (hasError) {
+    return _FailedToFetch(error: error.toString());
+  }
+
+  return const CurrentPattern();
 }
 
-class NoBaseUrl extends ConsumerWidget {
-  const NoBaseUrl({super.key});
+class _NoBaseUrl extends ConsumerWidget {
+  const _NoBaseUrl();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -85,10 +107,10 @@ class NoBaseUrl extends ConsumerWidget {
   }
 }
 
-class FailedToFetch extends ConsumerWidget {
+class _FailedToFetch extends ConsumerWidget {
   final String error;
 
-  const FailedToFetch({required this.error, super.key});
+  const _FailedToFetch({required this.error});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -107,6 +129,23 @@ class FailedToFetch extends ConsumerWidget {
             await openUpdateHostUrlDialog(context, ref);
           },
           child: const Text('Edit Connection'),
+        ),
+      ],
+    );
+  }
+}
+
+class _Loading extends StatelessWidget {
+  const _Loading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      mainAxisAlignment: .center,
+      children: [
+        LinearProgressIndicator(),
+        Expanded(
+          child: Center(child: Text('Fetching available light patterns...')),
         ),
       ],
     );

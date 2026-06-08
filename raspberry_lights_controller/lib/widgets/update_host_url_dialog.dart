@@ -14,7 +14,7 @@ Future<void> openUpdateHostUrlDialog(
 ) async {
   final host = ref.read(hostProvider);
   final result = await showDialog<(String, int)>(
-    builder: (context) => UpdateHostUrlDialog(host),
+    builder: (context) => UpdateHostUrlDialog(host?.info),
     context: context,
   );
   if (result != null) {
