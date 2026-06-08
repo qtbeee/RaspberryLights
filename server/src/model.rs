@@ -6,8 +6,6 @@ use crate::light_pattern::Color;
 #[serde(rename_all = "snake_case")]
 pub enum PatternName {
     Breathing,
-    BreathingConfigurable,
-    Critmas,
     RainbowAcross,
     RainbowInPlace,
     Scroll,

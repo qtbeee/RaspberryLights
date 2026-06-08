@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     light_pattern::{
-        Breathing, BreathingConfigurable, Color, ColorPattern, ColorlessPattern, Critmas,
-        LightPattern, RainbowAcross, RainbowInPlace, Scroll, SolidColor, Twinkle,
+        Breathing, Color, ColorPattern, ColorlessPattern, LightPattern, RainbowAcross,
+        RainbowInPlace, Scroll, SolidColor, Twinkle,
     },
     model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternName},
 };
@@ -41,8 +41,6 @@ pub async fn get_patterns() -> Json<Patterns> {
     Json(Patterns {
         patterns: vec![
             Breathing::get_info(),
-            BreathingConfigurable::get_info(),
-            Critmas::get_info(),
             RainbowAcross::get_info(),
             RainbowInPlace::get_info(),
             Scroll::get_info(),
@@ -83,20 +81,7 @@ pub async fn set_pattern(
             server_state.leds_in_use,
             animation_speed,
             brightness,
-            &colors.expect("breathing pattern needs at least one color!"),
-            options,
-        )),
-        PatternName::BreathingConfigurable => Box::new(BreathingConfigurable::new(
-            server_state.leds_in_use,
-            animation_speed,
-            brightness,
             &colors.expect("breating pattern needs at least one color!"),
-            options,
-        )),
-        PatternName::Critmas => Box::new(Critmas::new(
-            server_state.leds_in_use,
-            animation_speed,
-            brightness,
             options,
         )),
         PatternName::RainbowAcross => Box::new(RainbowAcross::new(

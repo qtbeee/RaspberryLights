@@ -16,7 +16,7 @@ use ws2818_rgb_led_spi_driver::{
 };
 
 use crate::{
-    light_pattern::{BreathingConfigurable, Color, ColorPattern},
+    light_pattern::{Breathing, Color, ColorPattern},
     pattern::{ServerState, get_current_pattern, get_patterns, set_pattern},
 };
 
@@ -30,7 +30,7 @@ async fn main() {
     let leds_in_use = NonZeroUsize::new(50).unwrap();
     let total_leds: usize = 50;
 
-    let initial_pattern = Box::new(BreathingConfigurable::new(
+    let initial_pattern = Box::new(Breathing::new(
         leds_in_use,
         0,
         100,

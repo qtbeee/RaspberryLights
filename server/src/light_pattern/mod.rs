@@ -1,7 +1,5 @@
 mod breathing;
-mod breathing_configurable;
 mod color;
-mod critmas;
 mod rainbow_across;
 mod rainbow_in_place;
 mod scroll;
@@ -11,9 +9,7 @@ mod twinkle;
 use std::num::NonZeroUsize;
 
 pub use breathing::Breathing;
-pub use breathing_configurable::BreathingConfigurable;
 pub use color::Color;
-pub use critmas::Critmas;
 pub use rainbow_across::RainbowAcross;
 pub use rainbow_in_place::RainbowInPlace;
 pub use scroll::Scroll;
