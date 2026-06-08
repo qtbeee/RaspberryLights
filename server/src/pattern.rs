@@ -4,7 +4,10 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use axum::{Extension, Json, extract};
+use axum::{
+    Json,
+    extract::{self, State},
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -51,7 +54,7 @@ pub async fn get_patterns() -> Json<Patterns> {
 }
 
 pub async fn get_current_pattern(
-    Extension(server_state): Extension<Arc<ServerState>>,
+    State(server_state): State<Arc<ServerState>>,
 ) -> Json<PatternConfiguration> {
     Json(
         server_state
@@ -63,7 +66,7 @@ pub async fn get_current_pattern(
 }
 
 pub async fn set_pattern(
-    Extension(server_state): Extension<Arc<ServerState>>,
+    State(server_state): State<Arc<ServerState>>,
     Json(request): extract::Json<PatternRequest>,
 ) {
     let colors = request.colors.as_ref().map(|c| {

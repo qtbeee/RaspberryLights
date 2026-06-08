@@ -1,6 +1,9 @@
 use std::num::NonZeroUsize;
 
-use rand::{Rng, distributions::Uniform, thread_rng};
+use rand::{
+    distr::{Distribution, Uniform},
+    random_range, rng,
+};
 
 use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSetting};
 
@@ -89,7 +92,7 @@ impl Breathing {
     fn reset_colors(&mut self) {
         match self.options.color_choice {
             ColorChoice::SyncOnCycle => {
-                let color_index = thread_rng().gen_range(0..self.colors.len()) as u8;
+                let color_index = random_range(0..self.colors.len()) as u8;
 
                 if self.current_colors.len() == 0 {
                     self.current_colors
@@ -103,12 +106,12 @@ impl Breathing {
             ColorChoice::RandomizeOnCycle => {
                 if self.current_colors.len() == 0 {
                     self.current_colors.resize_with(self.led_count.into(), || {
-                        thread_rng().gen_range(0..self.colors.len()) as u8
+                        random_range(0..self.colors.len()) as u8
                     });
                 } else {
                     self.current_colors
                         .iter_mut()
-                        .for_each(|i| *i = thread_rng().gen_range(0..self.colors.len()) as u8);
+                        .for_each(|i| *i = random_range(0..self.colors.len()) as u8);
                 }
             }
             ColorChoice::BalancedOnce if self.current_colors.len() == 0 => {
@@ -119,13 +122,10 @@ impl Breathing {
                 );
             }
             ColorChoice::RandomizedOnce if self.current_colors.len() == 0 => {
-                let distr = Uniform::new(0, self.colors.len() as u8);
+                let distr = Uniform::new(0, self.colors.len() as u8).unwrap();
 
-                self.current_colors.extend(
-                    thread_rng()
-                        .sample_iter(distr)
-                        .take(usize::from(self.led_count)),
-                );
+                self.current_colors
+                    .extend(distr.sample_iter(rng()).take(usize::from(self.led_count)));
             }
             _ => {}
         }

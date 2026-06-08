@@ -1,6 +1,6 @@
 use std::num::NonZeroUsize;
 
-use rand::{Rng, thread_rng};
+use rand::random_range;
 
 use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSetting};
 
@@ -78,7 +78,7 @@ impl ColorPattern for Twinkle {
         Self {
             brightness,
             brightnesses: (0..usize::from(leds))
-                .map(|_| thread_rng().gen_range(0..Self::FRAMES))
+                .map(|_| random_range(0..Self::FRAMES))
                 .collect(),
             colors: colors.into(),
             led_colors: colors

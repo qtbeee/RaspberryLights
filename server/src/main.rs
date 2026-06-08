@@ -2,11 +2,11 @@ mod light_pattern;
 mod model;
 mod pattern;
 
-use axum::{Extension, Router, routing::get};
+use axum::{Router, routing::get};
 use light_pattern::LightPattern;
 
 use std::{num::NonZeroUsize, str::FromStr, sync::Arc, sync::Mutex, time::Duration};
-use tokio::{sync::mpsc::error::TryRecvError, time::sleep};
+use tokio::{net::TcpListener, sync::mpsc::error::TryRecvError, time::sleep};
 use tower_http::trace::TraceLayer;
 use ws2818_rgb_led_spi_driver::{
     adapter_gen::WS28xxAdapter,
@@ -46,19 +46,16 @@ async fn main() {
         current_pattern_settings: Mutex::new(initial_pattern.get_current_settings()),
     });
 
-    let app = Router::new()
+    let router = Router::new()
         .route("/patterns", get(get_patterns))
         .route("/pattern", get(get_current_pattern).post(set_pattern))
         .layer(TraceLayer::new_for_http())
-        // .layer(Extension(send))
-        // .layer(Extension(leds_in_use));
-        .layer(Extension(server_state));
+        .with_state(server_state);
 
     // NOTE: to get around the spi handler not being `Send`, we're running the axum server
     // in a separate thread instead of the led runner function!
-    let handler = tokio::spawn(
-        axum::Server::bind(&"0.0.0.0:5000".parse().unwrap()).serve(app.into_make_service()),
-    );
+    let listener = TcpListener::bind("0.0.0.0:5000").await.unwrap();
+    let handler = tokio::spawn(axum::serve(listener, router).into_future());
 
     ctrlc::set_handler(move || {
         handler.abort();
