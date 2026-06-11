@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:raspberry_lights_controller/models/pattern_configuration.dart';
+import 'package:raspberry_lights_controller/models/pattern_configuration_setting.dart';
 import 'package:raspberry_lights_controller/models/pattern_info.dart';
+import 'package:raspberry_lights_controller/models/pattern_setting.dart';
 
 Future<
   ({
@@ -104,24 +105,32 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
                 final settingInfo = widget.patternInfo.additionalSettings
                     .firstWhere((s) => s.name == setting.name);
 
-                if (settingInfo.settingType == 'Multiple Choice') {
-                  return _DropdownSetting(
-                    name: setting.name,
-                    value: setting.value,
-                    options: settingInfo.options!,
-                    onChanged: makeOnChanged(setting.name),
-                    description: settingInfo.description,
-                  );
-                } else {
-                  return _SliderSetting(
-                    name: setting.name,
-                    value: setting.value,
-                    min: settingInfo.min!,
-                    max: settingInfo.max!,
-                    isPercent: settingInfo.isPercent,
-                    onChanged: makeOnChanged(setting.name),
-                    description: settingInfo.description,
-                  );
+                switch (settingInfo) {
+                  case MultipleChoiceSetting():
+                    return _DropdownSetting(
+                      name: setting.name,
+                      value: setting.value as int,
+                      options: settingInfo.options,
+                      onChanged: makeOnChanged(setting.name),
+                      description: settingInfo.description,
+                    );
+                  case NumberSetting():
+                    return _SliderSetting(
+                      name: setting.name,
+                      value: setting.value as int,
+                      min: settingInfo.min,
+                      max: settingInfo.max,
+                      isPercent: settingInfo.isPercent,
+                      onChanged: makeOnChanged(setting.name),
+                      description: settingInfo.description,
+                    );
+                  case BooleanSetting():
+                    return _ToggleSetting(
+                      name: setting.name,
+                      value: setting.value as bool,
+                      description: settingInfo.description,
+                      onChanged: makeOnChanged(setting.name),
+                    );
                 }
               }),
             ],
@@ -139,7 +148,7 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
     setState(() => animationSpeed = newValue);
   }
 
-  void Function(int newValue) makeOnChanged(String settingName) {
+  void Function(dynamic newValue) makeOnChanged(String settingName) {
     return (newValue) {
       final newSettings = [...additionalSettings];
       final index = newSettings.indexWhere((s) => s.name == settingName);
@@ -272,6 +281,42 @@ class _SliderSetting extends StatelessWidget {
                   onChanged: (value) => onChanged(value.toInt()),
                 ),
                 Row(children: [Text(minLabel), const Spacer(), Text(maxLabel)]),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ToggleSetting extends StatelessWidget {
+  final String name;
+  final bool value;
+  final String? description;
+  final ValueChanged<bool> onChanged;
+
+  const _ToggleSetting({
+    required this.name,
+    required this.value,
+    required this.onChanged,
+    this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const .symmetric(vertical: 8, horizontal: 16),
+        child: Column(
+          crossAxisAlignment: .stretch,
+          children: [
+            Row(
+              children: [
+                Text(name, style: const TextStyle(fontWeight: .bold)),
+                if (description != null) _Description(description: description),
+                const Spacer(),
+                Switch(value: value, onChanged: onChanged),
               ],
             ),
           ],

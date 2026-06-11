@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:raspberry_lights_controller/models/pattern_configuration_setting.dart';
 
 part 'pattern_configuration.g.dart';
 
@@ -16,36 +17,6 @@ class RGBColor {
 
   factory RGBColor.fromJson(Map<String, dynamic> json) =>
       _$RGBColorFromJson(json);
-}
-
-@JsonSerializable()
-@immutable
-class PatternConfigurationSetting {
-  final String name;
-  final int value;
-
-  const PatternConfigurationSetting({required this.name, required this.value});
-
-  factory PatternConfigurationSetting.fromJson(Map<String, dynamic> json) =>
-      _$PatternConfigurationSettingFromJson(json);
-
-  Map<String, dynamic> toJson() => _$PatternConfigurationSettingToJson(this);
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other is PatternConfigurationSetting &&
-            name == other.name &&
-            value == other.value);
-  }
-
-  @override
-  int get hashCode => Object.hashAll([name, value]);
-
-  @override
-  String toString() {
-    return '{ name: $name, value: $value }';
-  }
 }
 
 @JsonSerializable(createToJson: false)

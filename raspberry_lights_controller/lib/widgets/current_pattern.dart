@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:raspberry_lights_controller/models/pattern_configuration.dart';
+import 'package:raspberry_lights_controller/models/pattern_configuration_setting.dart';
 import 'package:raspberry_lights_controller/models/pattern_setting.dart';
 import 'package:raspberry_lights_controller/providers/current_pattern.dart';
 import 'package:raspberry_lights_controller/providers/pattern_list.dart';
@@ -255,10 +256,20 @@ class _CurrentPatternState extends ConsumerState<CurrentPattern> {
           : null,
       additionalSettings: newSelectedPattern.additionalSettings
           .map(
-            (s) => PatternConfigurationSetting(
-              name: s.name,
-              value: s.min ?? 0,
-            ),
+            (s) => switch (s) {
+              MultipleChoiceSetting() => PatternConfigurationSetting(
+                name: s.name,
+                value: s.defaultValue,
+              ),
+              NumberSetting() => PatternConfigurationSetting(
+                name: s.name,
+                value: s.defaultValue,
+              ),
+              BooleanSetting() => PatternConfigurationSetting(
+                name: s.name,
+                value: s.defaultValue,
+              ),
+            },
           )
           .toList(),
     );
@@ -333,18 +344,20 @@ class _AdditionalSettingEntry extends StatelessWidget {
   });
 
   final String name;
-  final int value;
+  final dynamic value;
   final PatternSetting patternSettingInfo;
 
   @override
   Widget build(BuildContext context) {
-    final String valueText;
-
-    if (patternSettingInfo.settingType == 'Number') {
-      valueText = patternSettingInfo.isPercent ? '$value%' : value.toString();
-    } else {
-      valueText = patternSettingInfo.options![value];
-    }
+    final valueText = switch (patternSettingInfo) {
+      MultipleChoiceSetting() =>
+        (patternSettingInfo as MultipleChoiceSetting).options[value as int],
+      NumberSetting() =>
+        (patternSettingInfo as NumberSetting).isPercent
+            ? '$value%'
+            : value.toString(),
+      BooleanSetting() => value as bool ? 'Yes' : 'No',
+    };
 
     return _SummaryEntry(title: name, value: valueText);
   }

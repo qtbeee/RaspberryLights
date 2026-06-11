@@ -4,7 +4,7 @@ import 'package:raspberry_lights_controller/models/pattern_setting.dart';
 
 part 'pattern_info.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 @immutable
 class PatternInfo {
   final String patternId;
@@ -12,6 +12,7 @@ class PatternInfo {
   final String description;
   final bool canChooseColor;
   final int animationSpeeds;
+  @JsonKey(fromJson: _patternSettingsFromJson)
   final List<PatternSetting> additionalSettings;
 
   const PatternInfo({
@@ -26,14 +27,18 @@ class PatternInfo {
   factory PatternInfo.fromJson(Map<String, dynamic> json) =>
       _$PatternInfoFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PatternInfoToJson(this);
+  static List<PatternSetting> _patternSettingsFromJson(
+    List<dynamic> json,
+  ) => [
+    for (final s in json) patternSettingFromJson(s as Map<String, dynamic>),
+  ];
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is PatternInfo &&
+      (other is PatternInfo &&
           runtimeType == other.runtimeType &&
-          patternId == other.patternId;
+          patternId == other.patternId);
 
   @override
   int get hashCode => patternId.hashCode;

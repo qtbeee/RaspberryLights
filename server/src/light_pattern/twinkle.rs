@@ -2,7 +2,7 @@ use std::num::NonZeroUsize;
 
 use rand::random_range;
 
-use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSetting};
+use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSettingInfo};
 
 use super::{Color, ColorPattern, LightPattern};
 
@@ -44,7 +44,7 @@ impl LightPattern for Twinkle {
     }
 
     fn get_info() -> PatternInfo {
-        let additional_settings: Vec<PatternSetting> = vec![];
+        let additional_settings: Vec<PatternSettingInfo> = vec![];
 
         PatternInfo {
             pattern_id: crate::model::PatternName::Twinkle,

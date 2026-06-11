@@ -1,45 +1,73 @@
-import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'pattern_setting.g.dart';
 
-@JsonSerializable()
-@immutable
-class PatternSetting {
+PatternSetting patternSettingFromJson(Map<String, dynamic> json) {
+  if (json['options'] != null) {
+    return MultipleChoiceSetting.fromJson(json);
+  } else if (json['min'] != null) {
+    return NumberSetting.fromJson(json);
+  } else {
+    return BooleanSetting.fromJson(json);
+  }
+}
+
+sealed class PatternSetting {
   final String name;
   final String? description;
-
-  final int? min;
-  final int? max;
-  final bool isPercent;
-  final List<String>? options;
 
   const PatternSetting({
     required this.name,
     required this.description,
-    this.min,
-    this.max,
-    this.isPercent = false,
-    this.options,
+  });
+}
+
+@JsonSerializable(createToJson: false)
+class MultipleChoiceSetting extends PatternSetting {
+  final List<String> options;
+  final int defaultValue;
+
+  const MultipleChoiceSetting({
+    required super.name,
+    required super.description,
+    required this.options,
+    required this.defaultValue,
   });
 
-  factory PatternSetting.fromJson(Map<String, dynamic> json) =>
-      _$PatternSettingFromJson(json);
+  factory MultipleChoiceSetting.fromJson(Map<String, dynamic> json) =>
+      _$MultipleChoiceSettingFromJson(json);
+}
 
-  Map<String, dynamic> toJson() => _$PatternSettingToJson(this);
+@JsonSerializable(createToJson: false)
+class NumberSetting extends PatternSetting {
+  final int min;
+  final int max;
+  final bool isPercent;
+  final int defaultValue;
 
-  String get settingType =>
-      min != null && max != null ? 'Number' : 'Multiple Choice';
+  const NumberSetting({
+    required super.name,
+    required super.description,
+    required this.min,
+    required this.max,
+    required this.isPercent,
+    required this.defaultValue,
+  });
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) || (other is PatternSetting && name == other.name);
+  factory NumberSetting.fromJson(Map<String, dynamic> json) =>
+      _$NumberSettingFromJson(json);
+}
 
-  @override
-  int get hashCode => name.hashCode;
+@JsonSerializable(createToJson: false)
+class BooleanSetting extends PatternSetting {
+  final bool defaultValue;
 
-  @override
-  String toString() =>
-      '{ name: $name, description: $description, isPercent: $isPercent, '
-      'type: $settingType }';
+  const BooleanSetting({
+    required super.name,
+    required super.description,
+    required this.defaultValue,
+  });
+
+  factory BooleanSetting.fromJson(Map<String, dynamic> json) =>
+      _$BooleanSettingFromJson(json);
 }

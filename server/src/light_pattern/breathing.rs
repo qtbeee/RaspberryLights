@@ -5,7 +5,7 @@ use rand::{
     random_range, rng,
 };
 
-use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSetting};
+use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSettingInfo};
 
 use super::{Color, ColorPattern, LightPattern};
 
@@ -73,13 +73,16 @@ impl Breathing {
         let mut color_choice = Default::default();
         let mut min_relative_brightness = Default::default();
 
-        options.iter().for_each(|o| match &o.name {
-            v if v == SETTINGS_STRS[AdditionalSetting::ColorAssignment as usize] => {
-                color_choice = ColorChoice::try_from(o.value).unwrap_or_default();
-            }
-            v if v == SETTINGS_STRS[AdditionalSetting::MinRelBrightness as usize] => {
-                min_relative_brightness = o.value.clamp(0, 95);
-            }
+        options.iter().for_each(|o| match o {
+            ConfigurationSetting::Number { name, value } => match name {
+                v if v == SETTINGS_STRS[AdditionalSetting::ColorAssignment as usize] => {
+                    color_choice = ColorChoice::try_from(*value).unwrap_or_default();
+                }
+                v if v == SETTINGS_STRS[AdditionalSetting::MinRelBrightness as usize] => {
+                    min_relative_brightness = (*value).clamp(0, 95);
+                }
+                _ => {}
+            },
             _ => {}
         });
 
@@ -175,20 +178,22 @@ impl LightPattern for Breathing {
 
     fn get_info() -> PatternInfo {
         let additional_settings = vec![
-            PatternSetting::MultipleChoice {
+            PatternSettingInfo::MultipleChoice {
                 name: SETTINGS_STRS[AdditionalSetting::ColorAssignment as usize],
                 description: Some(
                     "Choose how the leds are assigned color if more than one color is provided.",
                 ),
                 options: COLOR_CHOICE_STRS.into(),
+                default_value: 0,
             },
-            PatternSetting::Number {
+            PatternSettingInfo::Number {
                 name: SETTINGS_STRS[AdditionalSetting::MinRelBrightness as usize],
                 description: Some(
                     "Choose how dark leds get every cycle relative to the overall brightness setting, as a percentage.",
                 ),
                 min: 0,
                 max: 95,
+                default_value: 0,
                 is_percent: true,
             },
         ];
@@ -210,11 +215,11 @@ impl LightPattern for Breathing {
             brightness: self.global_brightness,
             colors: Option::Some(self.colors.clone()),
             additional_settings: vec![
-                ConfigurationSetting {
+                ConfigurationSetting::Number {
                     name: SETTINGS_STRS[AdditionalSetting::ColorAssignment as usize].into(),
                     value: self.options.color_choice as usize,
                 },
-                ConfigurationSetting {
+                ConfigurationSetting::Number {
                     name: SETTINGS_STRS[AdditionalSetting::MinRelBrightness as usize].into(),
                     value: self.options.min_relative_brightness,
                 },

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- "Rainbow Across" pattern configuration options for "Reverse" and "Rainbow Width".
+
 ## 0.5.0 - 2026-06-08
 
 ### Added

@@ -15,19 +15,28 @@ pub enum PatternName {
 
 #[derive(Serialize)]
 #[serde(untagged)]
-pub enum PatternSetting {
+pub enum PatternSettingInfo {
+    #[serde(rename_all = "camelCase")]
     MultipleChoice {
         name: &'static str,
         description: Option<&'static str>,
         options: Vec<&'static str>,
+        default_value: usize,
     },
     #[serde(rename_all = "camelCase")]
     Number {
         name: &'static str,
         description: Option<&'static str>,
+        default_value: usize,
         min: usize,
         max: usize,
         is_percent: bool,
+    },
+    #[serde(rename_all = "camelCase")]
+    Boolean {
+        name: &'static str,
+        description: Option<&'static str>,
+        default_value: bool,
     },
 }
 
@@ -39,13 +48,14 @@ pub struct PatternInfo {
     pub description: &'static str,
     pub can_choose_color: bool,
     pub animation_speeds: usize,
-    pub additional_settings: Vec<PatternSetting>,
+    pub additional_settings: Vec<PatternSettingInfo>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ConfigurationSetting {
-    pub name: String,
-    pub value: usize,
+#[serde(untagged)]
+pub enum ConfigurationSetting {
+    Number { name: String, value: usize },
+    Boolean { name: String, value: bool },
 }
 
 #[derive(Serialize, Clone)]
