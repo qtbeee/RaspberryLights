@@ -72,7 +72,13 @@ impl LightPattern for RainbowAcross {
     }
 
     fn update(&mut self) {
-        self.pos = self.pos.overflowing_add(1).0;
+        // Different rainbow widths differ in perceived travel speed, so we compensate here.
+        let delta = match self.options.width {
+            256 | 128 | 64 => 1,
+            32 | 16 => 2,
+            _ => unreachable!(),
+        };
+        self.pos = self.pos.overflowing_add(delta).0;
     }
 
     fn get_sleep_millis(&self) -> u64 {
