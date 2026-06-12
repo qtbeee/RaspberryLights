@@ -30,6 +30,7 @@ pub enum PatternSettingInfo {
         default_value: usize,
         min: usize,
         max: usize,
+        step_size: usize,
         is_percent: bool,
     },
     #[serde(rename_all = "camelCase")]

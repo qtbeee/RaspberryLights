@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - "Rainbow Across" pattern configuration options for "Reverse" and "Rainbow Width".
+- "Rainbow In Place" pattern configuration option for "Maximum Color Offset".
 
 ## 0.5.0 - 2026-06-08
 

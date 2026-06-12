@@ -123,6 +123,7 @@ class _PatternSettingsEditorState extends ConsumerState<PatternSettingsEditor> {
                       isPercent: settingInfo.isPercent,
                       onChanged: makeOnChanged(setting.name),
                       description: settingInfo.description,
+                      stepSize: settingInfo.stepSize,
                     );
                   case BooleanSetting():
                     return _ToggleSetting(
@@ -232,7 +233,7 @@ class _SliderSetting extends StatelessWidget {
   final String? minLabel;
   final String? maxLabel;
   final bool showLabel;
-  final int? divisions;
+  final int? stepSize;
 
   final void Function(int newValue) onChanged;
 
@@ -247,7 +248,7 @@ class _SliderSetting extends StatelessWidget {
     this.minLabel,
     this.maxLabel,
     this.showLabel = true,
-    this.divisions,
+    this.stepSize,
   });
 
   @override
@@ -255,7 +256,7 @@ class _SliderSetting extends StatelessWidget {
     final label = showLabel ? (isPercent ? '$value%' : '$value') : null;
     final minLabel = this.minLabel ?? (isPercent ? '$min%' : '$min');
     final maxLabel = this.maxLabel ?? (isPercent ? '$max%' : '$max');
-    final divisions = this.divisions ?? (max - min);
+    final divisions = (max - min) ~/ (stepSize ?? 1);
 
     return Card(
       child: Padding(
@@ -368,7 +369,7 @@ class _BrightnessSlider extends StatelessWidget {
       max: 100,
       isPercent: true,
       onChanged: onChanged,
-      divisions: 9,
+      stepSize: 10,
     );
   }
 }

@@ -44,12 +44,14 @@ class NumberSetting extends PatternSetting {
   final int max;
   final bool isPercent;
   final int defaultValue;
+  final int stepSize;
 
   const NumberSetting({
     required super.name,
     required super.description,
     required this.min,
     required this.max,
+    required this.stepSize,
     required this.isPercent,
     required this.defaultValue,
   });

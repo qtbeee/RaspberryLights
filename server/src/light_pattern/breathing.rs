@@ -194,6 +194,7 @@ impl LightPattern for Breathing {
                 min: 0,
                 max: 95,
                 default_value: 0,
+                step_size: 5,
                 is_percent: true,
             },
         ];
