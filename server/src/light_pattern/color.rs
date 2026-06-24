@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use serde::Serialize;
 
-#[derive(Clone, Copy, Debug, Serialize)]
+#[derive(Clone, Copy, Debug, Serialize, PartialEq, Eq)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
