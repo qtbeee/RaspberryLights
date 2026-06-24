@@ -11,7 +11,6 @@ use super::{Color, ColorPattern, LightPattern};
 
 #[derive(Debug)]
 pub struct Breathing {
-    led_count: NonZeroUsize,
     global_brightness: u8,
     current_position: u16,
     colors: Vec<Color>,
@@ -69,7 +68,6 @@ impl Breathing {
     const FRAME_COUNT: u16 = 720;
 
     fn parse_options(options: Vec<ConfigurationSetting>) -> BreathingOptions {
-        println!("options raw: {:?}", options);
         let mut color_choice = Default::default();
         let mut min_relative_brightness = Default::default();
 
@@ -92,45 +90,55 @@ impl Breathing {
         }
     }
 
+    fn get_starting_colors(
+        colors: &[Color],
+        color_choice: ColorChoice,
+        led_count: usize,
+    ) -> Vec<u8> {
+        if colors.len() == 1 {
+            return vec![0; led_count];
+        }
+
+        match color_choice {
+            ColorChoice::SyncOnCycle => {
+                let color_index = random_range(0..colors.len()) as u8;
+                vec![color_index; led_count]
+            }
+            ColorChoice::RandomizeOnCycle | ColorChoice::RandomizedOnce => {
+                Uniform::try_from(0u8..colors.len() as u8)
+                    .unwrap()
+                    .sample_iter(rng())
+                    .take(led_count)
+                    .collect()
+            }
+            ColorChoice::BalancedOnce => (0..colors.len())
+                .into_iter()
+                .cycle()
+                .take(led_count)
+                .map(|i| i as u8)
+                .collect(),
+        }
+    }
+
     fn reset_colors(&mut self) {
+        if self.colors.len() == 1 {
+            return;
+        }
+
         match self.options.color_choice {
             ColorChoice::SyncOnCycle => {
                 let color_index = random_range(0..self.colors.len()) as u8;
 
-                if self.current_colors.len() == 0 {
-                    self.current_colors
-                        .resize(self.led_count.into(), color_index);
-                } else {
-                    self.current_colors
-                        .iter_mut()
-                        .for_each(|i| *i = color_index)
-                }
+                self.current_colors
+                    .iter_mut()
+                    .for_each(|i| *i = color_index)
             }
             ColorChoice::RandomizeOnCycle => {
-                if self.current_colors.len() == 0 {
-                    self.current_colors.resize_with(self.led_count.into(), || {
-                        random_range(0..self.colors.len()) as u8
-                    });
-                } else {
-                    self.current_colors
-                        .iter_mut()
-                        .for_each(|i| *i = random_range(0..self.colors.len()) as u8);
-                }
-            }
-            ColorChoice::BalancedOnce if self.current_colors.len() == 0 => {
-                self.current_colors.extend(
-                    (0..self.colors.len() as u8)
-                        .cycle()
-                        .take(self.led_count.into()),
-                );
-            }
-            ColorChoice::RandomizedOnce if self.current_colors.len() == 0 => {
-                let distr = Uniform::new(0, self.colors.len() as u8).unwrap();
-
                 self.current_colors
-                    .extend(distr.sample_iter(rng()).take(usize::from(self.led_count)));
+                    .iter_mut()
+                    .for_each(|i| *i = random_range(0..self.colors.len()) as u8);
             }
-            _ => {}
+            ColorChoice::BalancedOnce | ColorChoice::RandomizedOnce => {}
         }
     }
 }
@@ -163,11 +171,7 @@ impl LightPattern for Breathing {
     fn update(&mut self) {
         let next_pos = (self.current_position + self.step_size) % Self::FRAME_COUNT;
         if self.current_position > next_pos {
-            // If we've looped back around, see if we need to change the color
-            match self.options.color_choice {
-                ColorChoice::SyncOnCycle | ColorChoice::RandomizeOnCycle => self.reset_colors(),
-                ColorChoice::BalancedOnce | ColorChoice::RandomizedOnce => {}
-            }
+            self.reset_colors();
         }
         self.current_position = next_pos;
     }
@@ -181,10 +185,10 @@ impl LightPattern for Breathing {
             PatternSettingInfo::MultipleChoice {
                 name: SETTINGS_STRS[AdditionalSetting::ColorAssignment as usize],
                 description: Some(
-                    "Choose how the leds are assigned color if more than one color is provided.",
+                    "Choose how leds are assigned color if more than one color is provided.",
                 ),
                 options: COLOR_CHOICE_STRS.into(),
-                default_value: 0,
+                default_value: ColorChoice::default() as usize,
             },
             PatternSettingInfo::Number {
                 name: SETTINGS_STRS[AdditionalSetting::MinRelBrightness as usize],
@@ -237,17 +241,19 @@ impl ColorPattern for Breathing {
         colors: &[Color],
         options: Vec<ConfigurationSetting>,
     ) -> Self {
-        let mut pattern = Self {
-            led_count: leds,
+        let options = Self::parse_options(options);
+
+        Self {
             global_brightness: brightness,
             current_position: 100,
             colors: colors.into(),
-            current_colors: Vec::new(),
-            options: Self::parse_options(options),
+            current_colors: Self::get_starting_colors(
+                colors,
+                options.color_choice,
+                usize::from(leds),
+            ),
+            options,
             step_size: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())],
-        };
-        pattern.reset_colors(); // Set initial colors here
-
-        pattern
+        }
     }
 }
