@@ -84,7 +84,7 @@ pub async fn set_pattern(
             server_state.leds_in_use,
             animation_speed,
             brightness,
-            &colors.expect("breating pattern needs at least one color!"),
+            &colors.expect("breathing pattern needs at least one color!"),
             options,
         )),
         PatternName::RainbowAcross => Box::new(RainbowAcross::new(
