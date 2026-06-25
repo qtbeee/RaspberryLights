@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Rainbow Across" pattern configuration options for "Reverse" and "Rainbow Width".
 - "Rainbow In Place" pattern configuration option for "Maximum Color Offset".
 - "Twinkle" pattern configuration option for "Color Assignment".
+- "Twinkle" pattern configuration option for "Speed Deviation Chance".
+- "Twinkle" pattern configuration option for "Speed Deviation Multiplier".
 
 ## 0.5.0 - 2026-06-08
 

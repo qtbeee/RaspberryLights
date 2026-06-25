@@ -6,17 +6,50 @@ use crate::model::{ConfigurationSetting, PatternConfiguration, PatternInfo, Patt
 
 use super::{Color, ColorPattern, LightPattern};
 
+#[derive(PartialEq, Eq, Hash)]
 pub enum AdditionalSetting {
     ColorAssignment,
+    SpeedDeviationChance,
+    SpeedDeviationMultiplier,
 }
 
 impl AdditionalSetting {
-    const STRS: [&str; 1] = ["Color Assignment"];
+    const STRS: [&str; 3] = [
+        "Color Assignment",
+        "Speed Deviation Chance",
+        "Speed Deviation Multiplier",
+    ];
 }
 
 #[derive(Clone, Copy)]
+pub struct SpeedDeviationChance(usize);
+impl Default for SpeedDeviationChance {
+    fn default() -> Self {
+        Self(0) // 0% chance
+    }
+}
+impl SpeedDeviationChance {
+    const MIN: usize = 0;
+    const MAX: usize = 30;
+}
+
+#[derive(Clone, Copy)]
+pub struct SpeedDeviationMultiplier(usize);
+impl Default for SpeedDeviationMultiplier {
+    fn default() -> Self {
+        Self(2) // 2x multiplier
+    }
+}
+impl SpeedDeviationMultiplier {
+    const MIN: usize = 2;
+    const MAX: usize = 4;
+}
+
+#[derive(Clone, Copy, Default)]
 pub struct TwinkleOptions {
     color_choice: TwinkleColorChoice,
+    dev_chance: SpeedDeviationChance,
+    dev_multiplier: SpeedDeviationMultiplier,
 }
 
 #[derive(Default, Clone, Copy)]
@@ -56,8 +89,9 @@ impl TwinkleColorChoice {
 
 pub struct Twinkle {
     brightness: u8,
-    brightnesses: Vec<u16>,
+    led_frames: Vec<u16>,
     led_colors: Vec<Color>,
+    led_speedup: Vec<bool>,
     colors: Vec<Color>,
     sleep_millis: u64,
     options: TwinkleOptions,
@@ -65,22 +99,39 @@ pub struct Twinkle {
 
 impl Twinkle {
     const FRAMES: u16 = 180;
-    const SPEEDS: [u64; 3] = [30, 25, 20];
+    const SPEEDS: [u64; 5] = [50, 40, 30, 25, 20];
 
     fn parse_options(options: Vec<ConfigurationSetting>) -> TwinkleOptions {
-        let mut color_choice = Default::default();
+        let mut result = TwinkleOptions::default();
 
         options.iter().for_each(|o| match o {
-            ConfigurationSetting::Number { name, value } => match name {
-                v if v == AdditionalSetting::STRS[AdditionalSetting::ColorAssignment as usize] => {
-                    color_choice = TwinkleColorChoice::try_from(*value).unwrap_or_default();
+            ConfigurationSetting::Number { name, value } => {
+                if name == AdditionalSetting::STRS[AdditionalSetting::ColorAssignment as usize]
+                    && let Ok(color_choice) = TwinkleColorChoice::try_from(*value)
+                {
+                    result.color_choice = color_choice;
                 }
-                _ => {}
-            },
+                if name == AdditionalSetting::STRS[AdditionalSetting::SpeedDeviationChance as usize]
+                    && let Ok(dev_chance) = usize::try_from(*value)
+                {
+                    result.dev_chance = SpeedDeviationChance(
+                        dev_chance.clamp(SpeedDeviationChance::MIN, SpeedDeviationChance::MAX),
+                    );
+                }
+                if name
+                    == AdditionalSetting::STRS[AdditionalSetting::SpeedDeviationMultiplier as usize]
+                    && let Ok(dev_multiplier) = usize::try_from(*value)
+                {
+                    result.dev_multiplier = SpeedDeviationMultiplier(
+                        dev_multiplier
+                            .clamp(SpeedDeviationMultiplier::MIN, SpeedDeviationMultiplier::MAX),
+                    );
+                }
+            }
             _ => {}
         });
 
-        TwinkleOptions { color_choice }
+        result
     }
 
     fn initialize_colors(
@@ -134,7 +185,7 @@ impl LightPattern for Twinkle {
     fn get_frame(&self) -> Vec<Color> {
         self.led_colors
             .iter()
-            .zip(self.brightnesses.iter())
+            .zip(self.led_frames.iter())
             .map(|(color, brightness)| {
                 // brightness set to be between 0.3 and 1.3, which will then be clamped to 0.3 and 1.0
                 // I think I did this so that the lights would spend a bit more time at full brightness?
@@ -147,13 +198,27 @@ impl LightPattern for Twinkle {
     }
 
     fn update(&mut self) {
-        for index in 0..self.brightnesses.len() {
-            let old_brightness = self.brightnesses[index];
-            self.brightnesses[index] = (old_brightness + 5) % Self::FRAMES;
+        for index in 0..self.led_frames.len() {
+            let mut frame_advance = 5u16;
+            if self.led_speedup[index] {
+                frame_advance *= self.options.dev_multiplier.0 as u16;
+            }
 
-            // If we've finished the loop on a given led, pick the next color it will be
-            if self.brightnesses[index] < old_brightness {
+            let old_brightness = self.led_frames[index];
+            self.led_frames[index] = (old_brightness + frame_advance) % Self::FRAMES;
+
+            // If we've finished the loop,
+            if self.led_frames[index] < old_brightness {
+                // set next color
                 self.led_colors[index] = self.next_color(self.led_colors[index]);
+
+                // adjust animation speed based on the settings
+                if self.led_speedup[index] {
+                    self.led_speedup[index] = false;
+                }
+                if random_range(0..100) < self.options.dev_chance.0 {
+                    self.led_speedup[index] = true;
+                }
             }
         }
     }
@@ -163,15 +228,38 @@ impl LightPattern for Twinkle {
     }
 
     fn get_info() -> PatternInfo {
-        let additional_settings: Vec<PatternSettingInfo> =
-            vec![PatternSettingInfo::MultipleChoice {
+        let additional_settings: Vec<PatternSettingInfo> = vec![
+            PatternSettingInfo::MultipleChoice {
                 name: AdditionalSetting::STRS[AdditionalSetting::ColorAssignment as usize],
                 description: Some(
                     "Choose how leds are assigned color if more than one color is provided.",
                 ),
                 options: TwinkleColorChoice::STRS.into(),
                 default_value: TwinkleColorChoice::default() as usize,
-            }];
+            },
+            PatternSettingInfo::Number {
+                name: AdditionalSetting::STRS[AdditionalSetting::SpeedDeviationChance as usize],
+                description: Some(
+                    "If greater than zero, leds have a chance to temporarily speed up their animation for a cycle.",
+                ),
+                default_value: 0,
+                min: SpeedDeviationChance::MIN,
+                max: SpeedDeviationChance::MAX,
+                step_size: 1,
+                is_percent: true,
+            },
+            PatternSettingInfo::Number {
+                name: AdditionalSetting::STRS[AdditionalSetting::SpeedDeviationMultiplier as usize],
+                description: Some(
+                    "The multiplier applied to an led's animation speed when it speeds up.",
+                ),
+                default_value: 2,
+                min: SpeedDeviationMultiplier::MIN,
+                max: SpeedDeviationMultiplier::MAX,
+                step_size: 1,
+                is_percent: false,
+            },
+        ];
 
         PatternInfo {
             pattern_id: crate::model::PatternName::Twinkle,
@@ -189,10 +277,24 @@ impl LightPattern for Twinkle {
             animation_speed: Self::SPEEDS.iter().position(|&s| s == self.sleep_millis),
             brightness: self.brightness,
             colors: Option::Some(self.colors.clone()),
-            additional_settings: vec![ConfigurationSetting::Number {
-                name: AdditionalSetting::STRS[AdditionalSetting::ColorAssignment as usize].into(),
-                value: self.options.color_choice as usize,
-            }],
+            additional_settings: vec![
+                ConfigurationSetting::Number {
+                    name: AdditionalSetting::STRS[AdditionalSetting::ColorAssignment as usize]
+                        .to_string(),
+                    value: self.options.color_choice as usize,
+                },
+                ConfigurationSetting::Number {
+                    name: AdditionalSetting::STRS[AdditionalSetting::SpeedDeviationChance as usize]
+                        .to_string(),
+                    value: self.options.dev_chance.0 as usize,
+                },
+                ConfigurationSetting::Number {
+                    name: AdditionalSetting::STRS
+                        [AdditionalSetting::SpeedDeviationMultiplier as usize]
+                        .to_string(),
+                    value: self.options.dev_multiplier.0 as usize,
+                },
+            ],
         }
     }
 }
@@ -210,11 +312,12 @@ impl ColorPattern for Twinkle {
         let result = Self {
             options,
             brightness,
-            brightnesses: (0..usize::from(leds))
+            led_frames: (0..usize::from(leds))
                 .map(|_| random_range(0..Self::FRAMES))
                 .collect(),
-            colors: colors.into(),
             led_colors: Self::initialize_colors(usize::from(leds), colors, options.color_choice),
+            led_speedup: vec![false; usize::from(leds)],
+            colors: colors.into(),
             sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())],
         };
 
