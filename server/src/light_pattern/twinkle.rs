@@ -276,7 +276,7 @@ impl LightPattern for Twinkle {
             pattern_id: crate::model::PatternName::Twinkle,
             animation_speed: Self::SPEEDS.iter().position(|&s| s == self.sleep_millis),
             brightness: self.brightness,
-            colors: Option::Some(self.colors.clone()),
+            colors: Some(self.colors.clone()),
             additional_settings: vec![
                 ConfigurationSetting::Number {
                     name: AdditionalSetting::STRS[AdditionalSetting::ColorAssignment as usize]
@@ -318,7 +318,7 @@ impl ColorPattern for Twinkle {
             led_colors: Self::initialize_colors(usize::from(leds), colors, options.color_choice),
             led_speedup: vec![false; usize::from(leds)],
             colors: colors.into(),
-            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())],
+            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len() - 1)],
         };
 
         result

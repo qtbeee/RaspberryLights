@@ -71,7 +71,7 @@ impl ColorPattern for SolidColor {
                 .iter()
                 .map(|c| c.at_brightness_percent(brightness))
                 .collect(),
-            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
+            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len() - 1)] as u64,
         }
     }
 }

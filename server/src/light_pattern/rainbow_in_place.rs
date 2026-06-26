@@ -129,7 +129,7 @@ impl ColorlessPattern for RainbowInPlace {
 
         Self {
             positions: Self::positions_from_options(leds, options.max_color_offset),
-            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
+            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len() - 1)] as u64,
             brightness,
             options,
         }

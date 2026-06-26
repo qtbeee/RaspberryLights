@@ -253,7 +253,7 @@ impl ColorPattern for Breathing {
                 usize::from(leds),
             ),
             options,
-            step_size: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())],
+            step_size: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len() - 1)],
         }
     }
 }

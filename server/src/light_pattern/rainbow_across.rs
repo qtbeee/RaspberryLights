@@ -151,7 +151,7 @@ impl ColorlessPattern for RainbowAcross {
         Self {
             pos: 0,
             led_count: leds,
-            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len())] as u64,
+            sleep_millis: Self::SPEEDS[speed.clamp(0, Self::SPEEDS.len() - 1)] as u64,
             global_brightness: brightness,
             options: Self::parse_options(_options),
         }
