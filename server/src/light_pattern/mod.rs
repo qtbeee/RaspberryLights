@@ -1,5 +1,6 @@
 mod breathing;
 mod color;
+mod pew;
 mod rainbow_across;
 mod rainbow_in_place;
 mod scroll;
@@ -10,6 +11,7 @@ use std::num::NonZeroUsize;
 
 pub use breathing::Breathing;
 pub use color::Color;
+pub use pew::Pew;
 pub use rainbow_across::RainbowAcross;
 pub use rainbow_in_place::RainbowInPlace;
 pub use scroll::Scroll;

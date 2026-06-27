@@ -11,6 +11,7 @@ pub enum PatternName {
     Scroll,
     SolidColor,
     Twinkle,
+    Pew,
 }
 
 #[derive(Serialize)]

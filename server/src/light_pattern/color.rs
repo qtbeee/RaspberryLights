@@ -10,6 +10,12 @@ pub struct Color {
 }
 
 impl Color {
+    pub const BLACK: Color = Color {
+        red: 0,
+        green: 0,
+        blue: 0,
+    };
+
     // Get a color value based on `pos`.
     // The colors are a transition r - g - b - back to r.
     pub fn wheel(pos: u8) -> Color {

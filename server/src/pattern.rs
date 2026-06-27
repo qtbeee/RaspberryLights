@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     light_pattern::{
-        Breathing, Color, ColorPattern, ColorlessPattern, LightPattern, RainbowAcross,
+        Breathing, Color, ColorPattern, ColorlessPattern, LightPattern, Pew, RainbowAcross,
         RainbowInPlace, Scroll, SolidColor, Twinkle,
     },
     model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternName},
@@ -49,6 +49,7 @@ pub async fn get_patterns() -> Json<Patterns> {
             Scroll::get_info(),
             SolidColor::get_info(),
             Twinkle::get_info(),
+            Pew::get_info(),
         ],
     })
 }
@@ -118,6 +119,13 @@ pub async fn set_pattern(
             animation_speed,
             brightness,
             &colors.expect("twinkle pattern needs at least one color!"),
+            options,
+        )),
+        PatternName::Pew => Box::new(Pew::new(
+            server_state.leds_in_use,
+            animation_speed,
+            brightness,
+            &colors.expect("pew pattern needs at least one color!"),
             options,
         )),
     };
