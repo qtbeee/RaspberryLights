@@ -91,9 +91,15 @@ impl LightPattern for Pew {
         let mut frame = vec![Color::BLACK; self.led_count];
 
         self.burst_locations.iter().for_each(|burst_index| {
-            for i in 0..self.options.burst_length.0 {
-                let brightness = (self.options.burst_length.0 as i32 - i as i32) as f32
-                    / self.options.burst_length.0 as f32;
+            let burst_len = self.options.burst_length.0;
+
+            for i in 0..burst_len {
+                let brightness = if burst_len == 1 {
+                    1f32
+                } else {
+                    // y = -0.9(x/(burst_len-1))^2 + 1
+                    -0.9 * (i as f32 / (burst_len - 1) as f32).powi(2) + 1f32
+                };
 
                 let color = self
                     .colors
