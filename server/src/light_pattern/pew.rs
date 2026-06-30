@@ -1,7 +1,25 @@
+use rand::random_range;
+
 use crate::{
     light_pattern::{Color, ColorPattern, LightPattern},
     model::{ConfigurationSetting, PatternConfiguration, PatternInfo, PatternSettingInfo},
 };
+
+struct Burst {
+    location: i32,
+    color_index: usize,
+}
+impl Burst {
+    fn new(location: i32, color_assignment: ColorAssignment, color_count: usize) -> Self {
+        Self {
+            location,
+            color_index: match color_assignment {
+                ColorAssignment::Ordered => 0,
+                ColorAssignment::Random => random_range(0..color_count),
+            },
+        }
+    }
+}
 
 pub struct Pew {
     led_count: usize,
@@ -11,21 +29,45 @@ pub struct Pew {
     options: PewOptions,
 
     // state
-    burst_locations: Vec<i32>,
+    bursts: Vec<Burst>,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct PewOptions {
     reverse: ReverseAnimation,
+    color_choice: ColorAssignment,
     burst_length: BurstLength,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct ReverseAnimation(bool);
 impl ReverseAnimation {
     const NAME: &str = "Reverse Animation";
 }
 
+#[derive(Default, Clone, Copy)]
+pub enum ColorAssignment {
+    #[default]
+    Ordered,
+    Random,
+}
+impl ColorAssignment {
+    const NAME: &str = "Color Assignment";
+    const STRS: [&str; 2] = ["Ordered", "Random"];
+}
+impl TryFrom<usize> for ColorAssignment {
+    type Error = &'static str;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(ColorAssignment::Ordered),
+            1 => Ok(ColorAssignment::Random),
+            _ => Err("Out of bounds value"),
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
 pub struct BurstLength(u8);
 impl BurstLength {
     const NAME: &str = "Burst Length";
@@ -53,6 +95,11 @@ impl Pew {
                     result.burst_length =
                         BurstLength(value.clamp(BurstLength::MIN, BurstLength::MAX) as u8);
                 }
+                if name == ColorAssignment::NAME
+                    && let Ok(value) = ColorAssignment::try_from(*value)
+                {
+                    result.color_choice = value;
+                }
             }
             ConfigurationSetting::Boolean { name, value } => {
                 if name == ReverseAnimation::NAME {
@@ -62,6 +109,18 @@ impl Pew {
         });
 
         result
+    }
+
+    fn pick_next_color(&mut self, index: usize) {
+        match self.options.color_choice {
+            ColorAssignment::Ordered => {
+                let current = self.bursts[index].color_index;
+                self.bursts[index].color_index = (current + 1) % self.colors.len();
+            }
+            ColorAssignment::Random => {
+                self.bursts[index].color_index = random_range(0..self.colors.len())
+            }
+        }
     }
 }
 
@@ -81,7 +140,7 @@ impl ColorPattern for Pew {
             brightness,
             colors: colors.into(),
             led_count: usize::from(leds),
-            burst_locations: vec![0], // TODO: handle more than one burst
+            bursts: vec![Burst::new(0, options.color_choice, colors.len())], // TODO: handle more than one burst
         }
     }
 }
@@ -90,7 +149,7 @@ impl LightPattern for Pew {
     fn get_frame(&self) -> Vec<Color> {
         let mut frame = vec![Color::BLACK; self.led_count];
 
-        self.burst_locations.iter().for_each(|burst_index| {
+        self.bursts.iter().for_each(|burst| {
             let burst_len = self.options.burst_length.0;
 
             for i in 0..burst_len {
@@ -101,17 +160,14 @@ impl LightPattern for Pew {
                     -0.9 * (i as f32 / (burst_len - 1) as f32).powi(2) + 1f32
                 };
 
-                let color = self
-                    .colors
-                    .first() // TODO: choose a color properly
-                    .unwrap()
+                let color = self.colors[burst.color_index]
                     .at_brightness_percent(self.brightness)
                     .at_brightness(brightness);
 
                 let led_position = if self.options.reverse.0 {
-                    self.led_count as i32 - 1 - (burst_index - i as i32)
+                    self.led_count as i32 - 1 - (burst.location - i as i32)
                 } else {
-                    burst_index - i as i32
+                    burst.location - i as i32
                 };
 
                 if led_position >= 0 && led_position < self.led_count as i32 {
@@ -124,9 +180,19 @@ impl LightPattern for Pew {
     }
 
     fn update(&mut self) {
-        for l in self.burst_locations.iter_mut() {
-            *l += 1;
-            *l %= (self.led_count + 15) as i32; // TODO: should this number vary based on other settings?
+        let mut looped_bursts = vec![];
+        for (i, b) in self.bursts.iter_mut().enumerate() {
+            let old = b.location;
+            b.location += 1;
+            b.location %= (self.led_count + 15) as i32; // TODO: should this number vary based on other settings?
+
+            if old > b.location {
+                looped_bursts.push(i);
+            }
+        }
+
+        for i in looped_bursts.iter() {
+            self.pick_next_color(*i);
         }
     }
 
@@ -149,6 +215,14 @@ impl LightPattern for Pew {
                     name: ReverseAnimation::NAME,
                     description: None,
                     default_value: false,
+                },
+                PatternSettingInfo::MultipleChoice {
+                    name: ColorAssignment::NAME,
+                    description: Some(
+                        "If more than one color is provided, choose how colors are assigned to each burst.",
+                    ),
+                    options: ColorAssignment::STRS.into(),
+                    default_value: ColorAssignment::default() as usize,
                 },
                 PatternSettingInfo::Number {
                     name: BurstLength::NAME,
@@ -173,6 +247,10 @@ impl LightPattern for Pew {
                 ConfigurationSetting::Boolean {
                     name: ReverseAnimation::NAME.to_string(),
                     value: self.options.reverse.0,
+                },
+                ConfigurationSetting::Number {
+                    name: ColorAssignment::NAME.to_string(),
+                    value: self.options.color_choice as usize,
                 },
                 ConfigurationSetting::Number {
                     name: BurstLength::NAME.to_string(),
