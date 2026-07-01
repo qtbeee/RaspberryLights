@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New pattern "Pew".
 - "Pew" pattern configuration option for "Reverse Animation".
 - "Pew" pattern configuration option for "Burst Length".
+- "Pew" pattern configuration option for "Burst Spacing".
 
 ## 0.5.0 - 2026-06-08
 

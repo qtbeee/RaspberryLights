@@ -11,12 +11,23 @@ struct Burst {
 }
 impl Burst {
     fn new(location: i32, color_assignment: ColorAssignment, color_count: usize) -> Self {
+        match color_assignment {
+            ColorAssignment::Ordered => Self::new_with_color(location, 0),
+            ColorAssignment::Random => Self::new_with_random_color(location, color_count),
+        }
+    }
+
+    fn new_with_color(location: i32, color_index: usize) -> Self {
         Self {
             location,
-            color_index: match color_assignment {
-                ColorAssignment::Ordered => 0,
-                ColorAssignment::Random => random_range(0..color_count),
-            },
+            color_index,
+        }
+    }
+
+    fn new_with_random_color(location: i32, color_count: usize) -> Self {
+        Self {
+            location,
+            color_index: random_range(0..color_count),
         }
     }
 }
@@ -37,6 +48,7 @@ pub struct PewOptions {
     reverse: ReverseAnimation,
     color_choice: ColorAssignment,
     burst_length: BurstLength,
+    burst_spacing: BurstSpacing,
 }
 
 #[derive(Default, Clone, Copy)]
@@ -54,6 +66,15 @@ pub enum ColorAssignment {
 impl ColorAssignment {
     const NAME: &str = "Color Assignment";
     const STRS: [&str; 2] = ["Ordered", "Random"];
+
+    fn pick_next(&self, previous_color_index: Option<usize>, color_count: usize) -> usize {
+        match self {
+            ColorAssignment::Ordered => previous_color_index
+                .map(|i| (i + 1) % color_count)
+                .unwrap_or(0),
+            ColorAssignment::Random => random_range(0..color_count),
+        }
+    }
 }
 impl TryFrom<usize> for ColorAssignment {
     type Error = &'static str;
@@ -68,15 +89,33 @@ impl TryFrom<usize> for ColorAssignment {
 }
 
 #[derive(Clone, Copy)]
-pub struct BurstLength(u8);
+pub struct BurstLength(usize);
 impl BurstLength {
     const NAME: &str = "Burst Length";
+    const DESCRIPTION: &str = "The total length of each burst.";
     const MIN: usize = 1;
-    const MAX: usize = 5;
+    const MAX: usize = 10;
 }
 impl Default for BurstLength {
     fn default() -> Self {
         Self(5)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct BurstSpacing(usize);
+impl BurstSpacing {
+    const NAME: &str = "Burst Spacing";
+    const DESCRIPTION: &str = "Values smaller than or equal to the length of the led strip will result in more than one burst active at a time. Larger values will limit the number of bursts to 1 and will increase the time it takes for another to fire after the active burst leaves the end.";
+    const MIN: usize = 3;
+    const MAX: usize = 100;
+}
+impl Default for BurstSpacing {
+    fn default() -> Self {
+        // TODO: Would be nice for this to be configurable at the server level to account for different lengths of led strips.
+        // A hardcoded value that's abritrarily chosen to have a
+        // nice delay between single bursts on a 50-led strip.
+        Self(65)
     }
 }
 
@@ -89,16 +128,22 @@ impl Pew {
 
         options.iter().for_each(|o| match o {
             ConfigurationSetting::Number { name, value } => {
-                if name == BurstLength::NAME
-                    && let Ok(value) = usize::try_from(*value)
-                {
-                    result.burst_length =
-                        BurstLength(value.clamp(BurstLength::MIN, BurstLength::MAX) as u8);
-                }
                 if name == ColorAssignment::NAME
                     && let Ok(value) = ColorAssignment::try_from(*value)
                 {
                     result.color_choice = value;
+                }
+                if name == BurstLength::NAME
+                    && let Ok(value) = usize::try_from(*value)
+                {
+                    result.burst_length =
+                        BurstLength(value.clamp(BurstLength::MIN, BurstLength::MAX));
+                }
+                if name == BurstSpacing::NAME
+                    && let Ok(value) = usize::try_from(*value)
+                {
+                    result.burst_spacing =
+                        BurstSpacing(value.clamp(BurstSpacing::MIN, BurstSpacing::MAX))
                 }
             }
             ConfigurationSetting::Boolean { name, value } => {
@@ -109,18 +154,6 @@ impl Pew {
         });
 
         result
-    }
-
-    fn pick_next_color(&mut self, index: usize) {
-        match self.options.color_choice {
-            ColorAssignment::Ordered => {
-                let current = self.bursts[index].color_index;
-                self.bursts[index].color_index = (current + 1) % self.colors.len();
-            }
-            ColorAssignment::Random => {
-                self.bursts[index].color_index = random_range(0..self.colors.len())
-            }
-        }
     }
 }
 
@@ -140,7 +173,7 @@ impl ColorPattern for Pew {
             brightness,
             colors: colors.into(),
             led_count: usize::from(leds),
-            bursts: vec![Burst::new(0, options.color_choice, colors.len())], // TODO: handle more than one burst
+            bursts: vec![Burst::new(0, options.color_choice, colors.len())],
         }
     }
 }
@@ -151,6 +184,12 @@ impl LightPattern for Pew {
 
         self.bursts.iter().for_each(|burst| {
             let burst_len = self.options.burst_length.0;
+
+            // early return if the burst is currently entirely past the end of the led strip
+            // this can happen if the `burst_spacing` is set more than `burst_length` larger than `led_count`
+            if burst.location - burst_len as i32 > self.led_count as i32 {
+                return;
+            }
 
             for i in 0..burst_len {
                 let brightness = if burst_len == 1 {
@@ -180,19 +219,29 @@ impl LightPattern for Pew {
     }
 
     fn update(&mut self) {
-        let mut looped_bursts = vec![];
-        for (i, b) in self.bursts.iter_mut().enumerate() {
-            let old = b.location;
-            b.location += 1;
-            b.location %= (self.led_count + 15) as i32; // TODO: should this number vary based on other settings?
-
-            if old > b.location {
-                looped_bursts.push(i);
-            }
+        for i in 0..self.bursts.len() {
+            self.bursts[i].location += 1;
         }
 
-        for i in looped_bursts.iter() {
-            self.pick_next_color(*i);
+        // Note: we add, then remove, in order to make sure we always have one burst in the list at all times
+
+        // if the earliest burst is far enough ahead, start a new burst and put it at the start of the list
+        let trigger_index = self.options.burst_spacing.0 + self.options.burst_length.0;
+        if self.bursts[0].location == trigger_index as i32 {
+            let color_index = self
+                .options
+                .color_choice
+                .pick_next(Some(self.bursts[0].color_index), self.colors.len());
+            self.bursts.insert(0, Burst::new_with_color(0, color_index));
+        }
+
+        // if the furthest burst has finished, remove it
+        let end_index = i32::max(
+            self.led_count as i32 + self.options.burst_length.0 as i32,
+            trigger_index as i32,
+        );
+        if self.bursts.last().unwrap().location == end_index {
+            self.bursts.remove(self.bursts.len() - 1);
         }
     }
 
@@ -226,10 +275,19 @@ impl LightPattern for Pew {
                 },
                 PatternSettingInfo::Number {
                     name: BurstLength::NAME,
-                    description: None,
+                    description: Some(BurstLength::DESCRIPTION),
                     default_value: BurstLength::default().0 as usize,
                     min: BurstLength::MIN,
                     max: BurstLength::MAX,
+                    step_size: 1,
+                    is_percent: false,
+                },
+                PatternSettingInfo::Number {
+                    name: BurstSpacing::NAME,
+                    description: Some(BurstSpacing::DESCRIPTION),
+                    default_value: BurstSpacing::default().0 as usize,
+                    min: BurstSpacing::MIN,
+                    max: BurstSpacing::MAX,
                     step_size: 1,
                     is_percent: false,
                 },
@@ -255,6 +313,10 @@ impl LightPattern for Pew {
                 ConfigurationSetting::Number {
                     name: BurstLength::NAME.to_string(),
                     value: self.options.burst_length.0 as usize,
+                },
+                ConfigurationSetting::Number {
+                    name: BurstSpacing::NAME.to_string(),
+                    value: self.options.burst_spacing.0 as usize,
                 },
             ],
         }
